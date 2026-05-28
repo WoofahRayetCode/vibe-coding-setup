@@ -210,11 +210,11 @@ while true; do
         arch_status="${BLUE}[ ACTIVE ]${NC}"
         edit_status="${GREEN}[ ACTIVE ]${NC}"
     elif [ "$arch_active" -eq 1 ] && [ "$edit_active" -eq 0 ]; then
-        arch_status="${BLUE}[ ACTIVE ]${NC} ◀ Processing Plan"
-        edit_status="${YELLOW}[ PENDING ]${NC}  Switching next..."
+        arch_status="${BLUE}[ ACTIVE ]${NC} ◀ Designing Plan..."
+        edit_status="${YELLOW}[ STANDBY ]${NC}  Awaiting plan..."
     elif [ "$arch_active" -eq 0 ] && [ "$edit_active" -eq 1 ]; then
         arch_status="${GRAY}[  IDLE  ]${NC}"
-        edit_status="${GREEN}[ ACTIVE ]${NC} ◀ Applying Edits"
+        edit_status="${GREEN}[ ACTIVE ]${NC} ◀ Applying Edits..."
     else
         arch_status="${GRAY}[  IDLE  ]${NC}"
         edit_status="${GRAY}[  IDLE  ]${NC}"
