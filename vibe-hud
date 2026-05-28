@@ -22,6 +22,14 @@ while true; do
     cols=$(tput cols)
     lines=$(tput lines)
 
+    # Ensure cols and lines have fallback defaults if empty or non-numeric (prevents 'seq: missing operand' errors)
+    if ! [[ "$cols" =~ ^[0-9]+$ ]] || [ "$cols" -le 0 ]; then
+        cols=80
+    fi
+    if ! [[ "$lines" =~ ^[0-9]+$ ]] || [ "$lines" -le 0 ]; then
+        lines=24
+    fi
+
     # Generate dynamic horizontal borders matching 100% of terminal width
     border=$(printf '=%.0s' $(seq 1 $cols))
     divider=$(printf '-%.0s' $(seq 1 $cols))
