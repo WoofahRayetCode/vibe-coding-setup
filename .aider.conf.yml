@@ -26,3 +26,6 @@ auto-test: true
 
 # Automatically restore previous chat history and active files on startup
 restore-chat-history: true
+
+# Set a generous connection timeout (in seconds) to prevent local LLM loading timeouts
+timeout: 600
