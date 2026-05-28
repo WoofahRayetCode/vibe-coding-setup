@@ -22,6 +22,10 @@ tmux send-keys -t vibe-coding 'aider' C-m
 tmux split-window -h -p 30 -t vibe-coding
 tmux send-keys -t vibe-coding 'vibe-hud' C-m
 
+# Split the right pane vertically (creating a bottom-right pane for ComfyUI)
+tmux split-window -v -p 50 -t vibe-coding
+tmux send-keys -t vibe-coding 'if ! curl -s http://127.0.0.1:8188/ &> /dev/null; then cd /home/ericparsley/Documents/GitHub/ComfyUI && ./venv/bin/python main.py; else echo "ComfyUI Server is already running!"; echo "Monitoring generated PNG assets..."; watch -n 1 -d "ls -la --color=always *.png 2>/dev/null"; fi' C-m
+
 # Select the left pane (Aider) as active
 tmux select-pane -t vibe-coding:0.0
 

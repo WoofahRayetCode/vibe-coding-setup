@@ -68,7 +68,13 @@ A pure-Bash terminal telemetry dashboard runs in a split pane, giving you instan
 * **NVIDIA GPU Load & VRAM Bar**: Displays real-time GPU load, GPU temp, and exact VRAM capacity/percentage.
 * **Ollama Active States**: Tracks what models are currently loaded in VRAM, detailing exactly when Aider is `Designing Plan...`, `Applying Edits...`, or standing by.
 
-### 4. Dual-Model Reliability & Edge Cases
+### 4. Local AI Asset Generation (`vibe-asset`)
+This setup integrates a **local game asset generation pipeline** using **ComfyUI** and the highly optimized **DreamShaper 8** Stable Diffusion model running locally on your RTX 5060 GPU:
+* **Terminal-Based Sprites Creation**: You can run `vibe-asset "[prompt]"` directly inside Aider using the `/run` or `!` command (e.g. `/run vibe-asset "red dragon monster sprite" red_dragon`).
+* **Optimized Pixel Art Injector**: The command automatically embeds custom prompt styling to force grid-aligned, crisp, 16-bit pixel art outputs on solid flat backgrounds.
+* **Automatic Integration**: The script automatically polls the local ComfyUI API, processes the image, and saves the finished `.png` directly into your active Godot project folder.
+
+### 5. Dual-Model Reliability & Edge Cases
 Because the Editor model (`qwen2.5-coder:7b-tweaked`) operates at **Temperature 0** (greedy decoding), it follows the Architect's plans with maximum fidelity, precision, and zero creative deviation. Here is how this environment mitigates common LLM edge cases:
 * **Vague Plans / Guesswork**: If the Architect provides incomplete instructions, the Editor could introduce placeholders. *Mitigation: `Modelfile-architect` forces the 30B model to write fully completed, operational code blocks with no placeholders.*
 * **Complex Algorithmic Logic**: Highly complex programming tasks can occasionally lead to syntax slips in smaller models. *Mitigation: The `vibe-check` auto-compile loop immediately catches compiler errors, feeds them back to the 30B Architect, and automatically applies the correction.*
@@ -108,7 +114,8 @@ Here are the key configuration files and utilities provided in this repository:
 | [`.aider.model.settings.yml`](.aider.model.settings.yml) | Model Settings | Configures model settings. Force-pairs `qwen3-coder:30b-tweaked` (Architect) with `qwen2.5-coder:7b-tweaked` (Editor), configures `editor-whole` format, and expands the Repository Map token budget. |
 | [`vibe-check`](vibe-check) | Executable | The universal, language-agnostic compile and test runner. |
 | [`vibe-hud`](vibe-hud) | Executable | The terminal-based telemetry and active Ollama model status dashboard. |
-| [`vibe-start`](vibe-start) | Executable | Terminal workspace manager. Automatically launches Aider and `vibe-hud` side-by-side in a split window session using Tmux. |
+| [`vibe-asset`](vibe-asset) | CLI Tool | Programmatic Stable Diffusion sprite generator connecting directly to local ComfyUI. |
+| [`vibe-start`](vibe-start) | Executable | Terminal workspace manager. Automatically launches Aider, `vibe-hud`, and ComfyUI/asset-watcher side-by-side in a split window session using Tmux. |
 | [`aider.fish`](aider.fish) | Shell Integration | Fish Shell wrapper function. Automatically archives Large chat history files (>25KB) on startup to prevent local CPU connection timeout loops. |
 | [`setup.sh`](setup.sh) | Shell Script | Automates building models in Ollama, installing executables to `~/.local/bin/`, copying configuration files, and installing shell integrations. |
 
