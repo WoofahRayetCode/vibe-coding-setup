@@ -18,12 +18,12 @@ tmux rename-window -t vibe-coding 'Vibe Workspace'
 # Start Aider in the left pane (70% width)
 tmux send-keys -t vibe-coding 'aider' C-m
 
-# Split the pane horizontally (right split, 30% width) and run vibe-hud
-tmux split-window -h -p 30 -t vibe-coding
+# Split the pane horizontally (right split, 35% width for comfortable reading) and run vibe-hud
+tmux split-window -h -p 35 -t vibe-coding
 tmux send-keys -t vibe-coding 'vibe-hud' C-m
 
-# Split the right pane vertically (creating a bottom-right pane for ComfyUI)
-tmux split-window -v -p 50 -t vibe-coding
+# Split the right pane vertically (giving bottom pane 40% height to prevent HUD clipping)
+tmux split-window -v -p 40 -t vibe-coding
 tmux send-keys -t vibe-coding 'if ! curl -s http://127.0.0.1:8188/ &> /dev/null; then cd /home/ericparsley/Documents/GitHub/ComfyUI && ./venv/bin/python main.py; else echo "ComfyUI Server is already running!"; echo "Monitoring generated PNG assets..."; watch -n 1 -d "ls -la --color=always *.png 2>/dev/null"; fi' C-m
 
 # Select the left pane (Aider) as active
