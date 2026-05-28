@@ -14,25 +14,20 @@ clear
 # Hide cursor
 tput civis
 
+# Flag to track if the static ASCII header has been drawn
+header_drawn=0
+
 # Restore cursor on exit
 trap 'tput cnorm; exit' INT TERM EXIT
 
-while true; do
-    # Fetch terminal dimensions
+# Trap window resize signals to force a header redraw
+trap 'clear; header_drawn=0' WINCH
+
+draw_static_header() {
     cols=$(tput cols)
-    lines=$(tput lines)
-
-    # Generate dynamic horizontal borders matching 100% of terminal width
     border=$(printf -- '=%.0s' $(seq 1 $cols))
-    divider=$(printf -- '-%.0s' $(seq 1 $cols))
-
-    # Fetch active models
-    models_output=$(ollama ps 2>/dev/null | tail -n +2)
-
-    # Move cursor to top left
+    
     tput cup 0 0
-
-    # 1. Print Styled ASCII Header (takes up premium space)
     echo -e "${CYAN}$border${NC}"
     echo -e "${CYAN} __     ___ _            _   _ _   _ ____   ${NC}"
     echo -e "${CYAN} \\ \\   / (_) |__   ___  | | | | | | |  _ \\  ${NC}"
@@ -40,16 +35,35 @@ while true; do
     echo -e "${CYAN}   \\ V / | | |_) |  __/ |  _  | |_| | |_| | ${NC}"
     echo -e "${CYAN}    \\_/  |_|_.__/ \\___| |_| |_|\\___/|____/  ${NC}"
     echo -e "${CYAN}$border${NC}"
-    echo ""
+    header_drawn=1
+}
 
-    # 2. General System info
+while true; do
+    # 1. Draw static header only if not already drawn (or resized)
+    if [ "$header_drawn" -eq 0 ]; then
+        draw_static_header
+    fi
+
+    # Fetch terminal dimensions
+    cols=$(tput cols)
+    lines=$(tput lines)
+    divider=$(printf -- '-%.0s' $(seq 1 $cols))
+    border=$(printf -- '=%.0s' $(seq 1 $cols))
+
+    # Fetch active models
+    models_output=$(ollama ps 2>/dev/null | tail -n +2)
+
+    # 2. Move cursor directly to Line 9 (0-indexed line 8) below the ASCII art
+    tput cup 8 0
+
+    # 3. Print Dynamic Info (Time & Shell)
     current_time=$(date +"%Y-%m-%d %H:%M:%S")
     echo -e "  ${CYAN}[ SYSTEM TIME ]${NC}  $current_time"
     echo -e "  ${CYAN}[ HOST SHELL  ]${NC}  $SHELL"
     echo -e "${GRAY}$divider${NC}"
     echo ""
 
-    # 3. Live Hardware Telemetry
+    # 4. Fetch and Print Live Hardware Telemetry
     gpu_info=$(nvidia-smi --query-gpu=memory.used,memory.total,utilization.gpu,temperature.gpu --format=csv,noheader,nounits 2>/dev/null)
     if [ -n "$gpu_info" ]; then
         gpu_used=$(echo "$gpu_info" | awk -F', ' '{print $1}')
@@ -57,7 +71,7 @@ while true; do
         gpu_load=$(echo "$gpu_info" | awk -F', ' '{print $3}')
         gpu_temp=$(echo "$gpu_info" | awk -F', ' '{print $4}')
 
-        # Floating point VRAM calculations in pure Bash (zero dependencies)
+        # Floating point calculations in pure Bash
         used_gb_val=$(( gpu_used / 1024 ))
         used_mb_val=$(( (gpu_used % 1024) * 10 / 1024 ))
         gpu_used_gb="${used_gb_val}.${used_mb_val}"
@@ -103,7 +117,7 @@ while true; do
     echo -e "${GRAY}$divider${NC}"
     echo ""
 
-    # 4. Model info card
+    # 5. Print Ollama Model Info
     if [ -z "$models_output" ]; then
         echo -e "  ${GRAY}STATUS:       Idle (No models active in VRAM)${NC}               "
         echo ""
@@ -139,10 +153,8 @@ while true; do
     echo -e "${CYAN}$border${NC}"
     echo -e "  Press [Ctrl+C] to exit HUD.                       "
     
-    # Pad out the rest of the terminal with empty spaces to prevent ghost lines during resize
-    for ((i=26; i<lines; i++)); do
-        printf "%-${cols}s\n" ""
-    done
+    # Silently clear the rest of the screen below the HUD
+    tput ed
     
     sleep 0.2
 done
