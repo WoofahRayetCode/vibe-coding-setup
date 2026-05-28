@@ -79,6 +79,12 @@ if [ -f "vibe-asset" ]; then
     echo -e "${GREEN}✔ Installed 'vibe-asset' to $BIN_DIR/vibe-asset.${NC}"
 fi
 
+if [ -f "vibe-asset-monitor" ]; then
+    cp vibe-asset-monitor "$BIN_DIR/vibe-asset-monitor"
+    chmod +x "$BIN_DIR/vibe-asset-monitor"
+    echo -e "${GREEN}✔ Installed 'vibe-asset-monitor' to $BIN_DIR/vibe-asset-monitor.${NC}"
+fi
+
 if [ -f "vibe-start" ]; then
     cp vibe-start "$BIN_DIR/vibe-start"
     chmod +x "$BIN_DIR/vibe-start"

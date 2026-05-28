@@ -1,0 +1,126 @@
+#!/bin/bash
+# vibe-asset-monitor - Real-time asset telemetry and ComfyUI status dashboard
+
+# Colors for terminal output
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+GRAY='\033[0;90m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# Clear screen initially
+clear
+
+# Hide cursor
+tput civis
+
+# Flag to track if the static ASCII header has been drawn
+header_drawn=0
+
+# Restore cursor on exit
+trap 'tput cnorm; exit' INT TERM EXIT
+
+# Trap window resize signals to force a header redraw
+trap 'clear; header_drawn=0' WINCH
+
+draw_static_header() {
+    cols=$(tput cols)
+    border=$(printf -- '=%.0s' $(seq 1 $cols))
+    
+    tput cup 0 0
+    echo -e "${CYAN}$border${NC}"
+    echo -e "${CYAN} __     ___ _                  _                   _   ${NC}"
+    echo -e "${CYAN} \\ \\   / (_) |__   ___    / \\   ___ ___  ___  _ __| |_ ${NC}"
+    echo -e "${CYAN}  \\ \\ / /| | '_ \\ / _ \\  / _ \\ / __/ __|/ _ \\| '__| __|${NC}"
+    echo -e "${CYAN}   \\ V / | | |_) |  __/ / ___ \\\\__ \\\\__ \\  __/| |  | |_ ${NC}"
+    echo -e "${CYAN}    \\_/  |_|_.__/ \\___|/_/   \\_\\___/___/\\___||_|   \\__|${NC}"
+    echo -e "${CYAN}$border${NC}"
+    header_drawn=1
+}
+
+# Start ComfyUI in the background if it is not running
+start_comfyui() {
+    if ! curl -s http://127.0.0.1:8188/ &>/dev/null; then
+        echo -e "⚡ ComfyUI Server not detected. Starting in background..."
+        cd /home/ericparsley/Documents/GitHub/ComfyUI && ./venv/bin/python main.py >/tmp/comfyui.log 2>&1 &
+    fi
+}
+
+# Start it once at launch
+start_comfyui
+
+while true; do
+    # 1. Draw static header only if not already drawn
+    if [ "$header_drawn" -eq 0 ]; then
+        draw_static_header
+    fi
+
+    cols=$(tput cols)
+    divider=$(printf -- '-%.0s' $(seq 1 $cols))
+    border=$(printf -- '=%.0s' $(seq 1 $cols))
+
+    # 2. Move cursor directly to Line 9 (below the ASCII art)
+    tput cup 8 0
+
+    # 3. ComfyUI Server Status
+    if curl -s http://127.0.0.1:8188/ &>/dev/null; then
+        status_str="${GREEN}[ ACTIVE / ONLINE ]${NC}"
+    else
+        status_str="${YELLOW}[ STARTING / BOOTING ]${NC}"
+    fi
+
+    echo -e "  ${CYAN}[ COMFYUI SERVER ]${NC}  $status_str"
+    echo -e "${GRAY}$divider${NC}"
+
+    # 4. Live PNG Asset List
+    echo -e "  ${CYAN}[ RECENTLY GENERATED PNG ASSETS ]${NC}"
+    echo ""
+
+    png_files=$(ls -lt --time-style="+%Y-%m-%d %H:%M:%S" *.png 2>/dev/null | head -n 4)
+
+    if [ -n "$png_files" ]; then
+        echo -e "  ${GRAY}FILENAME                        SIZE        GENERATED TIME${NC}"
+        echo -e "  ${GRAY}--------                        ----        --------------${NC}"
+        echo "$png_files" | while read -r line; do
+            # Extract columns
+            size=$(echo "$line" | awk '{print $5}')
+            time_str=$(echo "$line" | awk '{print $6" "$7}')
+            filename=$(echo "$line" | awk '{$1=$2=$3=$4=$5=$6=$7=""; print $0}' | sed 's/^[ \t]*//')
+
+            # Pure Bash formatting for file sizes
+            if [ "$size" -ge 1048576 ]; then
+                size_str="$(( size / 1048576 )).$(( (size % 1048576) * 10 / 1048576 )) MB"
+            else
+                size_str="$(( size / 1024 )).$(( (size % 1024) * 10 / 1024 )) KB"
+            fi
+
+            echo -e "  ${GREEN}$(printf '%-30s' "$filename")${NC}  $(printf '%-10s' "$size_str")  $time_str"
+        done
+    else
+        echo -e "  ${GRAY}(No generated PNG assets found in this folder yet.)${NC}"
+        echo -e "  ${GRAY}Use 'vibe-asset \"prompt\"' to generate your first asset!${NC}"
+    fi
+
+    # 5. ComfyUI Log Tail if it's still booting
+    if ! curl -s http://127.0.0.1:8188/ &>/dev/null; then
+        echo ""
+        echo -e "${GRAY}$divider${NC}"
+        echo -e "  ${CYAN}[ COMFYUI STARTUP LOGS ]${NC}"
+        if [ -f "/tmp/comfyui.log" ]; then
+            tail -n 3 /tmp/comfyui.log | sed 's/^/  /'
+        else
+            echo -e "  Awaiting ComfyUI background startup logs..."
+        fi
+    fi
+
+    echo ""
+    echo -e "${CYAN}$border${NC}"
+    echo -e "  Press [Ctrl+C] to exit Monitor.                       "
+    
+    # Clear anything remaining below
+    tput ed
+    
+    # 1.0 second update rate is perfect for asset monitoring
+    sleep 1
+done
