@@ -221,10 +221,10 @@ while true; do
     fi
 
     echo -e "  ${CYAN}[ OLLAMA DUAL-MODEL STATUS ]${NC}"
-    printf "  %-12s  %-30s  %-25s\n" "MAIN ROLE" "MODEL NAME" "STATUS / VRAM STATE"
-    printf "  %-12s  %-30s  %-25s\n" "---------" "----------" "-------------------"
-    printf "  %-12s  %-30s  %-25s\n" "Architect" "$main_model" "$arch_status"
-    printf "  %-12s  %-30s  %-25s\n" "Editor"    "$editor_model" "$edit_status"
+    echo -e "  MAIN ROLE     MODEL NAME                      STATUS / VRAM STATE"
+    echo -e "  ---------     ----------                      -------------------"
+    echo -e "  Architect     $(printf '%-30s' "$main_model")  $arch_status"
+    echo -e "  Editor        $(printf '%-30s' "$editor_model")  $edit_status"
     echo ""
     echo -e "${CYAN}$border${NC}"
     echo -e "  Press [Ctrl+C] to exit HUD.                       "
