@@ -31,8 +31,8 @@ while true; do
     fi
 
     # Generate dynamic horizontal borders matching 100% of terminal width
-    border=$(printf '=%.0s' $(seq 1 $cols))
-    divider=$(printf '-%.0s' $(seq 1 $cols))
+    border=$(printf -- '=%.0s' $(seq 1 $cols))
+    divider=$(printf -- '-%.0s' $(seq 1 $cols))
 
     # Fetch active models
     models_output=$(ollama ps 2>/dev/null | tail -n +2)
