@@ -6,6 +6,9 @@ PARAMETER top_p 0.9
 PARAMETER num_ctx 32768
 PARAMETER num_predict 8192
 
+# CPU thread optimization matching AMD Ryzen 9 8940HX physical cores (avoids hyperthread bottlenecks)
+PARAMETER num_thread 16
+
 # System prompt optimized for high-speed, high-intelligence "vibe coding"
 SYSTEM """You are a highly efficient local Architect. You are optimized for fast, zero-fluff "vibe coding" workflows.
 

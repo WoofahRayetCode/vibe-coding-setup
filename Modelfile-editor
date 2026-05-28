@@ -6,6 +6,9 @@ PARAMETER top_p 0.9
 PARAMETER num_ctx 32768
 PARAMETER num_predict 8192
 
+# GPU offload optimization forcing 100% RTX 5060 VRAM allocation
+PARAMETER num_gpu 99
+
 # System prompt optimized for local Editor role
 SYSTEM """You are an exceptionally fast and precise local Editor model. Your sole responsibility is to implement the code modifications planned by the Architect.
 
