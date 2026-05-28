@@ -17,6 +17,10 @@ tput civis
 # Flag to track if the static ASCII header has been drawn
 header_drawn=0
 
+# Variables for pure Bash CPU calculation
+prev_idle=0
+prev_total=0
+
 # Restore cursor on exit
 trap 'tput cnorm; exit' INT TERM EXIT
 
@@ -64,6 +68,7 @@ while true; do
     echo ""
 
     # 4. Fetch and Print Live Hardware Telemetry
+    # A. NVIDIA GPU & VRAM Status
     gpu_info=$(nvidia-smi --query-gpu=memory.used,memory.total,utilization.gpu,temperature.gpu --format=csv,noheader,nounits 2>/dev/null)
     if [ -n "$gpu_info" ]; then
         gpu_used=$(echo "$gpu_info" | awk -F', ' '{print $1}')
@@ -107,12 +112,46 @@ while true; do
         bar_empty="░░░░░░░░░░░░"
     fi
 
-    # Fetch System RAM usage
+    # B. Pure Bash CPU Utilization Calculator (reads ticks since last 0.2s loop)
+    read -r _ user nice system idle iowait irq softirq steal guest guest_nice < /proc/stat
+    total_ticks=$((user + nice + system + idle + iowait + irq + softirq + steal))
+    idle_ticks=$idle
+
+    diff_total=$((total_ticks - prev_total))
+    diff_idle=$((idle_ticks - prev_idle))
+
+    if [ "$diff_total" -gt 0 ]; then
+        cpu_usage=$(( (diff_total - diff_idle) * 100 / diff_total ))
+    else
+        cpu_usage=0
+    fi
+
+    prev_total=$total_ticks
+    prev_idle=$idle_ticks
+
+    # Create CPU Progress Bar
+    cpu_bar_width=12
+    cpu_filled=$(( cpu_usage * cpu_bar_width / 100 ))
+    cpu_empty=$(( cpu_bar_width - cpu_filled ))
+    
+    if [ "$cpu_filled" -gt 0 ]; then
+        cpu_bar_filled=$(printf -- '█%.0s' $(seq 1 $cpu_filled))
+    else
+        cpu_bar_filled=""
+    fi
+    if [ "$cpu_empty" -gt 0 ]; then
+        cpu_bar_empty=$(printf -- '░%.0s' $(seq 1 $cpu_empty))
+    else
+        cpu_bar_empty=""
+    fi
+
+    # C. Fetch System RAM usage
     ram_info=$(free -m | awk '/Mem:/ {printf "%.1f GB / %.1f GB (%.0f%%)\n", $3/1024, $2/1024, $3/$2*100}')
 
     echo -e "  ${CYAN}[ HARDWARE STATUS ]${NC}"
     echo -e "  VRAM Usage:   [${GREEN}${bar_filled}${GRAY}${bar_empty}${NC}] ${gpu_used_gb} GB / ${gpu_total_gb} GB (${gpu_pct}%)"
     echo -e "  GPU Load/Temp: ${YELLOW}${gpu_load}% Load${NC} | ${YELLOW}${gpu_temp}°C${NC}"
+    echo -e "  CPU Usage:    [${GREEN}${cpu_bar_filled}${GRAY}${cpu_bar_empty}${NC}] ${cpu_usage}% Load"
     echo -e "  System RAM:    $ram_info"
     echo -e "${GRAY}$divider${NC}"
     echo ""
