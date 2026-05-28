@@ -117,38 +117,63 @@ while true; do
     echo -e "${GRAY}$divider${NC}"
     echo ""
 
-    # 5. Print Ollama Model Info
-    if [ -z "$models_output" ]; then
-        echo -e "  ${GRAY}STATUS:       Idle (No models active in VRAM)${NC}               "
-        echo ""
-        echo -e "  Active Model: ${GRAY}None${NC}                                 "
-        echo -e "  Processor:    ${GRAY}N/A${NC}                                      "
-        echo -e "  Cache Unload: ${GRAY}N/A${NC}                                      "
-    else
-        echo -e "  ${GREEN}STATUS:     Active (AI Model is currently executing)${NC}       "
-        echo ""
-        
-        # Read the ollama ps columns
-        echo "$models_output" | while read -r line; do
-            if [ -n "$line" ]; then
-                model_name=$(echo "$line" | awk '{print $1}')
-                size=$(echo "$line" | awk '{print $3 " " $4}')
-                processor=$(echo "$line" | awk '{print $5}')
-                until_time=$(echo "$line" | awk '{print $(NF-4) " " $(NF-3) " " $(NF-2) " " $(NF-1) " " $NF}')
-                
-                # Apply custom colors based on model family
-                if [[ "$model_name" == *"30b"* ]]; then
-                    color="${BLUE}"
-                else
-                    color="${GREEN}"
-                fi
+    # 5. Dynamic Aider Dual-Model Status Card
+    # Read currently configured model names from global Aider config
+    config_file="$HOME/.aider.conf.yml"
+    main_model="qwen3-coder:30b-tweaked"
+    editor_model="qwen2.5-coder:7b"
 
-                echo -e "  Active Model: ${color}${model_name}${NC} (${size})        "
-                echo -e "  Processor:    ${YELLOW}${processor}${NC}                 "
-                echo -e "  Cache Unload: ${GRAY}${until_time}${NC}                    "
-            fi
-        done
+    if [ -f "$config_file" ]; then
+        main_model_line=$(grep "^model:" "$config_file" | awk '{print $2}')
+        if [ -n "$main_model_line" ]; then
+            main_model=${main_model_line##*/}
+        fi
+        editor_model_line=$(grep "^editor-model:" "$config_file" | awk '{print $2}')
+        if [ -n "$editor_model_line" ]; then
+            editor_model=${editor_model_line##*/}
+        fi
     fi
+
+    # Determine status of each model in VRAM
+    arch_active=0
+    edit_active=0
+    
+    if echo "$models_output" | grep -q "$main_model"; then
+        arch_active=1
+    fi
+    if echo "$models_output" | grep -q "$editor_model"; then
+        edit_active=1
+    fi
+
+    # Handle fallbacks if a larger family model is currently loading
+    if [ "$arch_active" -eq 0 ] && [ "$edit_active" -eq 0 ] && [ -n "$models_output" ]; then
+        if echo "$models_output" | grep -q -E "30b|next"; then
+            arch_active=1
+        else
+            edit_active=1
+        fi
+    fi
+
+    # Resolve status tags
+    if [ "$arch_active" -eq 1 ] && [ "$edit_active" -eq 1 ]; then
+        arch_status="${BLUE}[ ACTIVE ]${NC}"
+        edit_status="${GREEN}[ ACTIVE ]${NC}"
+    elif [ "$arch_active" -eq 1 ] && [ "$edit_active" -eq 0 ]; then
+        arch_status="${BLUE}[ ACTIVE ]${NC} ◀ Processing Plan"
+        edit_status="${YELLOW}[ PENDING ]${NC}  Switching next..."
+    elif [ "$arch_active" -eq 0 ] && [ "$edit_active" -eq 1 ]; then
+        arch_status="${GRAY}[  IDLE  ]${NC}"
+        edit_status="${GREEN}[ ACTIVE ]${NC} ◀ Applying Edits"
+    else
+        arch_status="${GRAY}[  IDLE  ]${NC}"
+        edit_status="${GRAY}[  IDLE  ]${NC}"
+    fi
+
+    echo -e "  ${CYAN}[ OLLAMA DUAL-MODEL STATUS ]${NC}"
+    printf "  %-12s  %-30s  %-25s\n" "MAIN ROLE" "MODEL NAME" "STATUS / VRAM STATE"
+    printf "  %-12s  %-30s  %-25s\n" "---------" "----------" "-------------------"
+    printf "  %-12s  %-30s  %-25s\n" "Architect" "$main_model" "$arch_status"
+    printf "  %-12s  %-30s  %-25s\n" "Editor"    "$editor_model" "$edit_status"
     echo ""
     echo -e "${CYAN}$border${NC}"
     echo -e "  Press [Ctrl+C] to exit HUD.                       "
