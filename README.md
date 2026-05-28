@@ -1,0 +1,126 @@
+# 🚀 Local Vibe Coding Environment
+
+Welcome to the **Local Vibe Coding Environment** setup. This repository contains the complete configuration, scripts, and customized model templates to run a fully local, hands-free, zero-interruption AI pair-programming environment. 
+
+By leveraging **Aider** alongside **Ollama**, this environment splits complex coding tasks into a dual-model pipeline: high-level conceptual reasoning is handled by an **Architect model**, while rapid code writing is delegated to an **Editor model**.
+
+---
+
+## 🏗️ Architecture & How It Works
+
+This setup operates on a **split-brain architecture** that separates reasoning from execution to achieve maximum speed and high-level coding accuracy:
+
+```
+                  ┌────────────────────────┐
+                  │      User Prompt       │
+                  └───────────┬────────────┘
+                              │
+                              ▼
+                  ┌────────────────────────┐
+                  │   Architect (30B MoE)  │ ◄─── Uses qwen3-coder:30b-tweaked
+                  │  (Designs & Plans)     │      Configured with 32K context
+                  └───────────┬────────────┘
+                              │
+                              ▼  Delegates instructions
+                  ┌────────────────────────┐
+                  │    Editor (7B Model)   │ ◄─── Uses qwen2.5-coder:7b
+                  │  (Writes Diff Blocks)  │      Ultra-fast file editing
+                  └───────────┬────────────┘
+                              │
+                              ▼  Executes changes
+                  ┌────────────────────────┐
+                  │     Codebase Files     │
+                  └───────────┬────────────┘
+                              │
+                              ▼  Auto-trigger
+                  ┌────────────────────────┐
+                  │  Universal vibe-check  │ ◄─── Compiles & Runs Tests
+                  └───────────┬────────────┘      (Dotnet, Cargo, NPM, etc.)
+                              │
+            ┌─────────────────┴─────────────────┐
+            │                                   │
+            ▼ (Build Succeeds)                  ▼ (Build Fails)
+ ┌─────────────────────┐             ┌─────────────────────┐
+ │  Auto-Commit Code   │             │   Auto-Fix Loop     │
+ │  to Git Repository  │             │   (Send back to AI) │
+ └─────────────────────┘             └─────────────────────┘
+```
+
+### 1. Dual-Model Architect / Editor Pipeline
+Aider is configured in **Architect Mode** by default. When you submit a prompt:
+* **The Architect (`qwen3-coder:30b-tweaked`)**: Analyzes the codebase context via the Tree-sitter Repository Map, thinks through structural patterns, and outputs a conceptual plan of the changes needed.
+* **The Editor (`qwen2.5-coder:7b`)**: Takes the Architect's instructions and rapidly applies them using high-speed search-replace diff formats (`editor-diff`).
+* **VRAM Orchestration**: Ollama manages VRAM loading and offloading dynamically under the hood, swapping models seamlessly between plans and edits.
+
+### 2. Zero-Interruption Auto-Fix Loop (`vibe-check`)
+Every time Aider applies a code modification, it automatically invokes the **`vibe-check`** script:
+* `vibe-check` dynamically detects your project type (supporting C# `.csproj`, Rust `Cargo.toml`, Node.js `package.json`, Python, and Go).
+* It automatically triggers the appropriate compile or test command (e.g., `dotnet build`, `cargo test`, `npm test`).
+* **If it compiles cleanly**: Aider automatically commits the changes to Git.
+* **If it fails to compile**: Aider feeds the compiler error logs back to the Architect model in a loop, correcting the code automatically until it compiles.
+
+### 3. Real-Time Telemetry HUD (`vibe-hud`)
+A pure-Bash terminal telemetry dashboard runs in a split pane, giving you instant hardware and AI pipeline observability:
+* **System CPU Usage & Temperatures**: Parsed directly from `/proc/stat` and thermal zones.
+* **NVIDIA GPU Load & VRAM Bar**: Displays real-time GPU load, GPU temp, and exact VRAM capacity/percentage.
+* **Ollama Active States**: Tracks what models are currently loaded in VRAM, detailing exactly when Aider is `Designing Plan...`, `Applying Edits...`, or standing by.
+
+---
+
+## 🛠️ Setup Component Breakdown
+
+Here are the key configuration files and utilities provided in this repository:
+
+| File / Folder | Role | Description |
+| :--- | :--- | :--- |
+| [`Modelfile-architect`](Modelfile-architect) | Model Template | Tweaked Ollama configuration for `qwen3-coder:30b` (low temperature, 32K context window, tailored system instructions). |
+| [`Modelfile-agent`](Modelfile-agent) | Model Template | Tweaked Ollama configuration for `qwen3-coder-next` (80B MoE agent, 64K context window). |
+| [`.aider.conf.yml`](.aider.conf.yml) | Global Config | Global settings for Aider. Enables architect mode, sets `vibe-check` as the test command, activates auto-testing, enables git history restore, and activates hands-free prompts. |
+| [`.aider.model.settings.yml`](.aider.model.settings.yml) | Model Settings | Configures model settings. Force-pairs `qwen3-coder:30b-tweaked` (Architect) with `qwen2.5-coder:7b` (Editor), configures `editor-diff` format, and expands the Repository Map token budget. |
+| [`vibe-check`](vibe-check) | Executable | The universal, language-agnostic compile and test runner. |
+| [`vibe-hud`](vibe-hud) | Executable | The terminal-based telemetry and active Ollama model status dashboard. |
+| [`setup.sh`](setup.sh) | Shell Script | Automates building models in Ollama, installing executables to `~/.local/bin/`, and copying configurations to `~/.aider.conf.yml` and `~/.aider.model.settings.yml`. |
+
+---
+
+## 🚀 Installation & Usage
+
+### Step 1: Pre-requisites
+Ensure you have **Ollama** installed, running, and the base models pulled:
+```bash
+ollama pull qwen3-coder:30b
+ollama pull qwen2.5-coder:7b
+ollama pull qwen3-coder-next   # Optional (for 80B MoE Agent mode)
+```
+
+### Step 2: Run the Installer
+Clone this repository and run the setup script:
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+This script will build your custom tweaked models, install `vibe-check` and `vibe-hud` to `~/.local/bin`, and configure your global Aider environment.
+
+> [!NOTE]
+> Make sure `~/.local/bin` is in your Shell's `PATH` variable. If it is not, add `export PATH="$HOME/.local/bin:$PATH"` to your `~/.zshrc` or `~/.bashrc`.
+
+### Step 3: Run the Environment
+1. **Open a split terminal pane** and start the telemetry dashboard:
+   ```bash
+   vibe-hud
+   ```
+2. **Open your active project directory** and start Aider:
+   ```bash
+   aider
+   ```
+3. Type your feature requests or bug reports in Aider, sit back, and watch the HUD swap models and compile code dynamically in real time!
+
+---
+
+## 💡 Best Practices
+
+> [!TIP]
+> **Keep Chats Fast:** Over long coding sessions, your Aider history (`.aider.chat.history.md`) can grow very large, slowing down local model loading and context processing times. Periodically type `/clear` in Aider to prune your conversation history and restore instant startup speeds.
+
+> [!IMPORTANT]
+> **No Prompts/Confirmations:** This environment is built for hands-free coding. All `yes/no` prompts are automatically bypassed (`yes-always: true`). Any changes made by Aider that pass the compile test are immediately committed to Git. Work in a clean git branch so you can easily revert or review changes!
