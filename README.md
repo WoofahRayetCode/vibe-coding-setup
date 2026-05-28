@@ -26,7 +26,7 @@ This setup operates on a **split-brain architecture** that separates reasoning f
                               │
                               ▼  Delegates instructions
                   ┌────────────────────────┐
-                  │    Editor (7B Model)   │ ◄─── Uses qwen2.5-coder:7b
+                  │    Editor (7B Model)   │ ◄─── Uses qwen2.5-coder:7b-tweaked
                   │  (Writes Diff Blocks)  │      Ultra-fast file editing
                   └───────────┬────────────┘
                               │
@@ -52,7 +52,7 @@ This setup operates on a **split-brain architecture** that separates reasoning f
 ### 1. Dual-Model Architect / Editor Pipeline
 Aider is configured in **Architect Mode** by default. When you submit a prompt:
 * **The Architect (`qwen3-coder:30b-tweaked`)**: Analyzes the codebase context via the Tree-sitter Repository Map, thinks through structural patterns, and outputs a conceptual plan of the changes needed.
-* **The Editor (`qwen2.5-coder:7b`)**: Takes the Architect's instructions and rapidly applies them using high-speed search-replace diff formats (`editor-diff`).
+* **The Editor (`qwen2.5-coder:7b-tweaked`)**: Takes the Architect's instructions and rapidly applies them using high-speed search-replace diff formats (`editor-diff`).
 * **VRAM Orchestration**: Ollama manages VRAM loading and offloading dynamically under the hood, swapping models seamlessly between plans and edits.
 
 ### 2. Zero-Interruption Auto-Fix Loop (`vibe-check`)
@@ -85,7 +85,7 @@ This environment is optimized and actively running on a high-performance laptop 
 
 | Model | Size | VRAM Allocation | Execution Profile |
 | :--- | :--- | :--- | :--- |
-| **qwen2.5-coder:7b** (Editor) | ~4.7 GB | **100% GPU VRAM** | Lightning-fast code generation and diff application. Executes in under a few seconds. |
+| **qwen2.5-coder:7b-tweaked** (Editor) | ~4.7 GB | **100% GPU VRAM** | Lightning-fast code generation and diff application. Executes in under a few seconds. |
 | **qwen3-coder:30b-tweaked** (Architect) | ~18 GB | **Hybrid GPU + CPU RAM** | Highly intelligent conceptual plans and C# structure designs, utilizing CPU system memory and GPU offloading seamlessly. |
 
 ---
@@ -97,8 +97,9 @@ Here are the key configuration files and utilities provided in this repository:
 | File / Folder | Role | Description |
 | :--- | :--- | :--- |
 | [`Modelfile-architect`](Modelfile-architect) | Model Template | Tweaked Ollama configuration for `qwen3-coder:30b` (low temperature, 32K context window, tailored system instructions). |
+| [`Modelfile-editor`](Modelfile-editor) | Model Template | Tweaked Ollama configuration for `qwen2.5-coder:7b` (deterministic temperature, 32K context, zero-filler coding instructions). |
 | [`.aider.conf.yml`](.aider.conf.yml) | Global Config | Global settings for Aider. Enables architect mode, sets `vibe-check` as the test command, activates auto-testing, enables git history restore, and activates hands-free prompts. |
-| [`.aider.model.settings.yml`](.aider.model.settings.yml) | Model Settings | Configures model settings. Force-pairs `qwen3-coder:30b-tweaked` (Architect) with `qwen2.5-coder:7b` (Editor), configures `editor-whole` format, and expands the Repository Map token budget. |
+| [`.aider.model.settings.yml`](.aider.model.settings.yml) | Model Settings | Configures model settings. Force-pairs `qwen3-coder:30b-tweaked` (Architect) with `qwen2.5-coder:7b-tweaked` (Editor), configures `editor-whole` format, and expands the Repository Map token budget. |
 | [`vibe-check`](vibe-check) | Executable | The universal, language-agnostic compile and test runner. |
 | [`vibe-hud`](vibe-hud) | Executable | The terminal-based telemetry and active Ollama model status dashboard. |
 | [`vibe-start`](vibe-start) | Executable | Terminal workspace manager. Automatically launches Aider and `vibe-hud` side-by-side in a split window session using Tmux. |

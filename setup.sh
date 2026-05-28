@@ -31,11 +31,23 @@ if [ ! -f "Modelfile-architect" ]; then
     exit 1
 fi
 
+if [ ! -f "Modelfile-editor" ]; then
+    echo -e "${RED}Error: Modelfile-editor not found in current folder!${NC}"
+    exit 1
+fi
+
 echo -e "${YELLOW}Building qwen3-coder:30b-tweaked (Architect)...${NC}"
 if ollama create qwen3-coder:30b-tweaked -f Modelfile-architect; then
     echo -e "${GREEN}✔ qwen3-coder:30b-tweaked built successfully.${NC}"
 else
     echo -e "${RED}Failed to build qwen3-coder:30b-tweaked. Make sure you pulled 'qwen3-coder:30b' first.${NC}"
+fi
+
+echo -e "${YELLOW}Building qwen2.5-coder:7b-tweaked (Editor)...${NC}"
+if ollama create qwen2.5-coder:7b-tweaked -f Modelfile-editor; then
+    echo -e "${GREEN}✔ qwen2.5-coder:7b-tweaked built successfully.${NC}"
+else
+    echo -e "${RED}Failed to build qwen2.5-coder:7b-tweaked. Make sure you pulled 'qwen2.5-coder:7b' first.${NC}"
 fi
 
 # 3. Install vibe-check and vibe-hud scripts
