@@ -1,0 +1,155 @@
+#!/usr/bin/env python3
+import sys
+import json
+import urllib.request
+import urllib.parse
+import time
+import random
+import os
+
+# Config
+COMFYUI_URL = "http://127.0.0.1:8188"
+DEFAULT_CHECKPOINT = "dreamshaper_8.safetensors"
+
+def show_usage():
+    print("vibe-asset - Generate local AI pixel art game assets using ComfyUI")
+    print("Usage: vibe-asset <prompt> [filename_prefix]")
+    print('Example: vibe-asset "red dragon monster sprite" red_dragon')
+    sys.exit(1)
+
+if len(sys.argv) < 2:
+    show_usage()
+
+prompt_text = sys.argv[1]
+file_prefix = sys.argv[2] if len(sys.argv) > 2 else "vibe_asset"
+
+# Sanitize file prefix
+file_prefix = "".join(c for c in file_prefix if c.isalnum() or c in ("_", "-")).rstrip()
+
+# Inject optimized pixel-art prompts
+final_positive_prompt = f"{prompt_text}, retro pixel art style, 16-bit sprite, flat solid background, clean pixels, sharp details, isolated game asset"
+final_negative_prompt = "low quality, blurry, worst quality, 3d render, photorealistic, gradient background, depth of field, shadow cast"
+
+# Standard txt2img ComfyUI Workflow JSON
+workflow = {
+    "4": {
+        "inputs": {
+            "ckpt_name": DEFAULT_CHECKPOINT
+        },
+        "class_type": "CheckpointLoaderSimple"
+    },
+    "5": {
+        "inputs": {
+            "width": 512,
+            "height": 512,
+            "batch_size": 1
+        },
+        "class_type": "EmptyLatentImage"
+    },
+    "6": {
+        "inputs": {
+            "text": final_positive_prompt,
+            "clip": ["4", 1]
+        },
+        "class_type": "CLIPTextEncode"
+    },
+    "7": {
+        "inputs": {
+            "text": final_negative_prompt,
+            "clip": ["4", 1]
+        },
+        "class_type": "CLIPTextEncode"
+    },
+    "3": {
+        "inputs": {
+            "seed": random.randint(1, 1000000000),
+            "steps": 25,
+            "cfg": 7.5,
+            "sampler_name": "euler_ancestral",
+            "scheduler": "karras",
+            "denoise": 1.0,
+            "model": ["4", 0],
+            "positive": ["6", 0],
+            "negative": ["7", 0],
+            "latent_image": ["5", 0]
+        },
+        "class_type": "KSampler"
+    },
+    "8": {
+        "inputs": {
+            "samples": ["3", 0],
+            "vae": ["4", 2]
+        },
+        "class_type": "VAEDecode"
+    },
+    "9": {
+        "inputs": {
+            "filename_prefix": file_prefix,
+            "images": ["8", 0]
+        },
+        "class_type": "SaveImage"
+    }
+}
+
+print(f"🎨 Generating asset: \"{prompt_text}\"")
+print(f"🔌 Connecting to local ComfyUI API at {COMFYUI_URL}...")
+
+# 1. Queue the prompt
+payload = json.dumps({"prompt": workflow}).encode("utf-8")
+req = urllib.request.Request(
+    f"{COMFYUI_URL}/prompt",
+    data=payload,
+    headers={"Content-Type": "application/json"}
+)
+
+try:
+    with urllib.request.urlopen(req) as response:
+        res_data = json.loads(response.read().decode("utf-8"))
+        prompt_id = res_data["prompt_id"]
+        print(f"✔ Job queued successfully! Prompt ID: {prompt_id}")
+except Exception as e:
+    print(f"❌ Error connecting to ComfyUI: {e}")
+    print("Please make sure ComfyUI is running and fully loaded!")
+    sys.exit(1)
+
+# 2. Poll for completion
+print("⏳ Generating pixel art sprite (this takes ~3-5 seconds on your RTX 5060)...")
+finished = False
+filename = None
+
+while not finished:
+    time.sleep(0.5)
+    try:
+        # Check queue history
+        with urllib.request.urlopen(f"{COMFYUI_URL}/history/{prompt_id}") as response:
+            history_data = json.loads(response.read().decode("utf-8"))
+            if prompt_id in history_data:
+                # Job is completed! Get image details
+                outputs = history_data[prompt_id].get("outputs", {})
+                for node_id, output in outputs.items():
+                    if "images" in output:
+                        img_info = output["images"][0]
+                        filename = img_info["filename"]
+                        subfolder = img_info.get("subfolder", "")
+                finished = True
+    except Exception:
+        # Loop silently during loading/processing
+        pass
+
+if not filename:
+    print("❌ Error: Failed to retrieve generated image info from ComfyUI.")
+    sys.exit(1)
+
+# 3. Retrieve and save the image locally
+image_url = f"{COMFYUI_URL}/view?filename={filename}&subfolder={subfolder}&type=output"
+local_filename = f"{file_prefix}_{int(time.time())}.png"
+
+try:
+    print("📥 Downloading generated asset...")
+    urllib.request.urlretrieve(image_url, local_filename)
+    full_path = os.path.abspath(local_filename)
+    print(f"\n🎉 SUCCESS! Pixel art asset saved to:")
+    print(f"👉 {full_path}\n")
+except Exception as e:
+    print(f"❌ Error downloading final image: {e}")
+    sys.exit(1)

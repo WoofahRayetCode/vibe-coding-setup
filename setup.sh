@@ -16,7 +16,7 @@ echo -e "${BLUE}  Starting Local Vibe Coding Environment Installer...     ${NC}"
 echo -e "${BLUE}==========================================================${NC}"
 
 # 1. Check if Ollama is running
-echo -e "\n${BLUE}[1/5] Checking Ollama Service...${NC}"
+echo -e "\n${BLUE}[1/7] Checking Ollama Service...${NC}"
 if ! ollama list &>/dev/null; then
     echo -e "${RED}Error: Ollama service is not running or not in PATH! Please start Ollama and try again.${NC}"
     exit 1
@@ -24,7 +24,7 @@ fi
 echo -e "${GREEN}✔ Ollama is active and running.${NC}"
 
 # 2. Build/tweaked Ollama models
-echo -e "\n${BLUE}[2/5] Building Customized Tweaked Models in Ollama...${NC}"
+echo -e "\n${BLUE}[2/7] Building Customized Tweaked Models in Ollama...${NC}"
 
 if [ ! -f "Modelfile-architect" ]; then
     echo -e "${RED}Error: Modelfile-architect not found in current folder!${NC}"
@@ -51,7 +51,7 @@ else
 fi
 
 # 3. Install vibe-check and vibe-hud scripts
-echo -e "\n${BLUE}[3/5] Installing 'vibe-check' and 'vibe-hud' Scripts...${NC}"
+echo -e "\n${BLUE}[3/7] Installing 'vibe-check' and 'vibe-hud' Scripts...${NC}"
 BIN_DIR="$HOME/.local/bin"
 mkdir -p "$BIN_DIR"
 
@@ -73,6 +73,12 @@ else
     exit 1
 fi
 
+if [ -f "vibe-asset" ]; then
+    cp vibe-asset "$BIN_DIR/vibe-asset"
+    chmod +x "$BIN_DIR/vibe-asset"
+    echo -e "${GREEN}✔ Installed 'vibe-asset' to $BIN_DIR/vibe-asset.${NC}"
+fi
+
 if [ -f "vibe-start" ]; then
     cp vibe-start "$BIN_DIR/vibe-start"
     chmod +x "$BIN_DIR/vibe-start"
@@ -80,7 +86,7 @@ if [ -f "vibe-start" ]; then
 fi
 
 # 4. Copy Aider configuration files & Shell integrations
-echo -e "\n${BLUE}[4/5] Copying Global Aider Configuration Files & Shell Integrations...${NC}"
+echo -e "\n${BLUE}[4/7] Copying Global Aider Configuration Files & Shell Integrations...${NC}"
 
 if [ -f ".aider.conf.yml" ]; then
     cp .aider.conf.yml "$HOME/.aider.conf.yml"
@@ -101,8 +107,61 @@ if [ -f "aider.fish" ] && [ -d "$HOME/.config/fish/functions" ]; then
     echo -e "${GREEN}✔ Copied Fish Shell function integration to ~/.config/fish/functions/aider.fish.${NC}"
 fi
 
-# 5. Check PATH for bin folder
-echo -e "\n${BLUE}[5/6] Checking Zsh/Bash Path Integration...${NC}"
+# 5. Set Up Local AI Asset Pipeline (ComfyUI + PyTorch + Models)
+echo -e "\n${BLUE}[5/7] Setting Up Local AI Asset Pipeline (ComfyUI + PyTorch + Models)...${NC}"
+read -p "Would you like to install/configure ComfyUI and download the 2GB DreamShaper model? (y/n): " setup_comfy
+
+if [[ "$setup_comfy" =~ ^[Yy]$ ]]; then
+    COMFY_DIR="$HOME/Documents/GitHub/ComfyUI"
+    echo -e "${YELLOW}Installing ComfyUI in $COMFY_DIR...${NC}"
+    mkdir -p "$HOME/Documents/GitHub"
+    
+    if [ ! -d "$COMFY_DIR" ]; then
+        if git clone https://github.com/comfyanonymous/ComfyUI.git "$COMFY_DIR"; then
+            echo -e "${GREEN}✔ Cloned ComfyUI repository.${NC}"
+        else
+            echo -e "${RED}Failed to clone ComfyUI repository! Skipping ComfyUI setup.${NC}"
+        fi
+    else
+        echo -e "${GREEN}✔ ComfyUI directory already exists.${NC}"
+    fi
+
+    if [ -d "$COMFY_DIR" ]; then
+        # Check and install optimized PyTorch with CUDA if on Arch Linux
+        if command -v pacman &>/dev/null; then
+            echo -e "${YELLOW}Arch Linux detected. Installing optimized python-pytorch-opt-cuda via Pacman...${NC}"
+            if ! pacman -Qi python-pytorch-opt-cuda &>/dev/null; then
+                sudo pacman -Rdd --noconfirm python-pytorch &>/dev/null
+                sudo pacman -S --noconfirm python-pytorch-opt-cuda python-torchvision-cuda
+            fi
+            echo -e "${GREEN}✔ Optimized PyTorch with CUDA installed via Pacman.${NC}"
+        fi
+
+        # Create Python venv
+        echo -e "${YELLOW}Creating Python virtual environment...${NC}"
+        python -m venv --system-site-packages "$COMFY_DIR/venv"
+        
+        # Install pip requirements
+        echo -e "${YELLOW}Installing ComfyUI pip dependencies...${NC}"
+        "$COMFY_DIR/venv/bin/pip" install -r "$COMFY_DIR/requirements.txt"
+        
+        # Download DreamShaper 8 Checkpoint
+        CKPT_FILE="$COMFY_DIR/models/checkpoints/dreamshaper_8.safetensors"
+        if [ ! -f "$CKPT_FILE" ]; then
+            echo -e "${YELLOW}Downloading 2GB DreamShaper 8 model checkpoint...${NC}"
+            if curl -L -o "$CKPT_FILE" "https://huggingface.co/Lykon/DreamShaper/resolve/main/DreamShaper_8_pruned.safetensors"; then
+                echo -e "${GREEN}✔ Downloaded model checkpoint successfully.${NC}"
+            else
+                echo -e "${RED}Failed to download model checkpoint! You may need to download it manually.${NC}"
+            fi
+        else
+            echo -e "${GREEN}✔ Model checkpoint already exists.${NC}"
+        fi
+    fi
+fi
+
+# 6. Check PATH for bin folder
+echo -e "\n${BLUE}[6/7] Checking Zsh/Bash Path Integration...${NC}"
 if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
     echo -e "${YELLOW}Warning: $BIN_DIR is not in your current PATH variable!${NC}"
     echo -e "${YELLOW}Please add the following to your ~/.zshrc or ~/.bashrc:${NC}"
@@ -111,8 +170,8 @@ else
     echo -e "${GREEN}✔ $BIN_DIR is successfully configured in PATH.${NC}"
 fi
 
-# 6. Check Git Identity & GitHub Linkage
-echo -e "\n${BLUE}[6/6] Checking Git Identity & GitHub Remote Integration...${NC}"
+# 7. Check Git Identity & GitHub Linkage
+echo -e "\n${BLUE}[7/7] Checking Git Identity & GitHub Remote Integration...${NC}"
 
 # A. Verify Git user.name and user.email (mandatory for Aider autocommits)
 git_name=$(git config --global user.name)
