@@ -40,6 +40,8 @@ tmux send-keys -t vibe-coding:0.0 'aider' C-m
 tmux send-keys -t vibe-coding:0.1 'vibe-hud' C-m
 
 # Pane 0.2: Bottom Full-Width (ComfyUI / Asset Watcher)
+# Force the pane to run Bash to ensure compatibility with bash script commands regardless of user's default shell
+tmux send-keys -t vibe-coding:0.2 'exec bash' C-m
 tmux send-keys -t vibe-coding:0.2 'if ! curl -s http://127.0.0.1:8188/ &> /dev/null; then cd /home/ericparsley/Documents/GitHub/ComfyUI && ./venv/bin/python main.py; else echo "ComfyUI Server is already running!"; echo "Monitoring generated PNG assets..."; watch -n 1 -d "ls -la --color=always *.png 2>/dev/null"; fi' C-m
 
 # Select the main coding pane (Aider) as active by default
