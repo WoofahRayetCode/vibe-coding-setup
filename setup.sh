@@ -45,8 +45,8 @@ else
     echo -e "${RED}Failed to build qwen3-coder-next-tweaked. Make sure you pulled 'qwen3-coder-next' first.${NC}"
 fi
 
-# 3. Install vibe-check script
-echo -e "\n${BLUE}[3/5] Installing Universal 'vibe-check' Test Runner...${NC}"
+# 3. Install vibe-check and vibe-hud scripts
+echo -e "\n${BLUE}[3/5] Installing 'vibe-check' and 'vibe-hud' Scripts...${NC}"
 BIN_DIR="$HOME/.local/bin"
 mkdir -p "$BIN_DIR"
 
@@ -56,6 +56,15 @@ if [ -f "vibe-check" ]; then
     echo -e "${GREEN}✔ Installed 'vibe-check' to $BIN_DIR/vibe-check.${NC}"
 else
     echo -e "${RED}Error: vibe-check script not found in current folder!${NC}"
+    exit 1
+fi
+
+if [ -f "vibe-hud" ]; then
+    cp vibe-hud "$BIN_DIR/vibe-hud"
+    chmod +x "$BIN_DIR/vibe-hud"
+    echo -e "${GREEN}✔ Installed 'vibe-hud' to $BIN_DIR/vibe-hud.${NC}"
+else
+    echo -e "${RED}Error: vibe-hud script not found in current folder!${NC}"
     exit 1
 fi
 
