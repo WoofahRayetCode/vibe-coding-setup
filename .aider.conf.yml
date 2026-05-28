@@ -1,0 +1,25 @@
+# Global Aider Configuration
+# This file is automatically loaded every time you run 'aider' from any directory.
+
+# Default system-wide to your optimized local 32B Qwen model
+model: ollama_chat/qwen3-coder:30b-tweaked
+
+# Enable Architect mode and set the fast 7B model as the local Editor
+architect: true
+editor-model: ollama_chat/qwen2.5-coder:7b
+
+# Disable verbose logging to keep your terminal outputs clean and focused
+verbose: false
+
+# Allow a richer repository map (higher token budget) for Qwen3's huge context
+map-tokens: 2048
+
+# Turn off auto-suggested shell commands to keep terminal outputs clean
+suggest-shell-commands: false
+
+# Automatically say yes to all prompts (add to git, add to chat, commit changes, etc.)
+yes-always: true
+
+# Enable universal auto-testing/compiling to trigger the Auto-Fix Loop globally in any language
+test-cmd: vibe-check
+auto-test: true

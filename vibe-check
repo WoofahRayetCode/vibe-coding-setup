@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# ==========================================
+# Universal Vibe Coding Test & Compile Runner
+# ==========================================
+
+# 1. Detect C# (.NET)
+if ls *.sln &>/dev/null || ls *.csproj &>/dev/null || find . -maxdepth 2 -name "*.csproj" -print -quit | grep -q .; then
+    echo "=== C# (.NET) Project Detected ==="
+    dotnet build
+    exit $?
+fi
+
+# 2. Detect Rust
+if [ -f "Cargo.toml" ]; then
+    echo "=== Rust Project Detected ==="
+    cargo check
+    exit $?
+fi
+
+# 3. Detect Node.js / JavaScript / TypeScript
+if [ -f "package.json" ]; then
+    echo "=== Node.js/JS/TS Project Detected ==="
+    if grep -q '"test"' package.json; then
+        npm test
+        exit $?
+    elif grep -q '"build"' package.json; then
+        npm run build
+        exit $?
+    else
+        echo "package.json found but no test or build script configured."
+        exit 0
+    fi
+fi
+
+# 4. Detect Python
+if [ -f "requirements.txt" ] || [ -f "pyproject.toml" ] || [ -f "setup.py" ] || [ -f "Pipfile" ]; then
+    echo "=== Python Project Detected ==="
+    if command -v pytest &>/dev/null; then
+        pytest
+        exit $?
+    elif [ -f "manage.py" ]; then
+        python manage.py check
+        exit $?
+    else
+        # Compile python files to check for syntax errors
+        python -m compileall -q .
+        exit $?
+    fi
+fi
+
+# 5. Detect Go
+if [ -f "go.mod" ]; then
+    echo "=== Go Project Detected ==="
+    go test ./...
+    exit $?
+fi
+
+# 6. Fallback (No supported configuration detected)
+echo "=== Generic Project Detected ==="
+echo "No specific compiler or test runner detected. Passing check."
+exit 0

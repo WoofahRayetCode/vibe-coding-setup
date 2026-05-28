@@ -1,0 +1,42 @@
+# Aider Model Settings Override
+# This file configures Aider to treat your custom model with high-tier coding capabilities.
+
+- name: ollama_chat/qwen2.5-coder-32k
+  # Force lightning-fast search/replace blocks (prevents rewriting entire files)
+  edit_format: diff
+  # Enable the repository map so it has global visibility over your C# classes
+  use_repo_map: true
+
+- name: ollama_chat/qwen3-coder:30b
+  edit_format: diff
+  use_repo_map: true
+
+- name: ollama_chat/qwen3-coder-next
+  edit_format: diff
+  use_repo_map: true
+
+- name: ollama_chat/qwen2.5-coder:7b
+  edit_format: diff
+  use_repo_map: true
+
+- name: "ollama_chat/qwen3-coder:30b-tweaked"
+  accepts_settings: []
+  cache_control: false
+  caches_by_default: false
+  edit_format: "whole"
+  editor_edit_format: "editor-diff"
+  editor_model_name: "ollama_chat/qwen2.5-coder:7b"
+  examples_as_sys_msg: false
+  extra_params: null
+  lazy: false
+  overeager: false
+  reasoning_tag: null
+  reminder: "user"
+  remove_reasoning: null
+  send_undo_reply: false
+  streaming: true
+  system_prompt_prefix: null
+  use_repo_map: true
+  use_system_prompt: true
+  use_temperature: true
+  weak_model_name: null
