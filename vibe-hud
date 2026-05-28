@@ -205,8 +205,18 @@ while true; do
         fi
     fi
 
+    # Check if Aider is actually running
+    if pgrep -f "aider" >/dev/null; then
+        aider_running=1
+    else
+        aider_running=0
+    fi
+
     # Resolve status tags
-    if [ "$arch_active" -eq 1 ] && [ "$edit_active" -eq 1 ]; then
+    if [ "$aider_running" -eq 0 ]; then
+        arch_status="${GRAY}[  IDLE  ]${NC} (Aider stopped)"
+        edit_status="${GRAY}[  IDLE  ]${NC} (Aider stopped)"
+    elif [ "$arch_active" -eq 1 ] && [ "$edit_active" -eq 1 ]; then
         arch_status="${BLUE}[ ACTIVE ]${NC}"
         edit_status="${GREEN}[ ACTIVE ]${NC}"
     elif [ "$arch_active" -eq 1 ] && [ "$edit_active" -eq 0 ]; then
@@ -232,5 +242,10 @@ while true; do
     # Silently clear the rest of the screen below the HUD
     tput ed
     
-    sleep 0.2
+    # Adapt sleep interval depending on active usage to save CPU/Battery
+    if [ "$aider_running" -eq 1 ]; then
+        sleep 0.2
+    else
+        sleep 1.0
+    fi
 done
