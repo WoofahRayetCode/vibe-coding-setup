@@ -22,14 +22,6 @@ while true; do
     cols=$(tput cols)
     lines=$(tput lines)
 
-    # Ensure cols and lines have fallback defaults if empty or non-numeric (prevents 'seq: missing operand' errors)
-    if ! [[ "$cols" =~ ^[0-9]+$ ]] || [ "$cols" -le 0 ]; then
-        cols=80
-    fi
-    if ! [[ "$lines" =~ ^[0-9]+$ ]] || [ "$lines" -le 0 ]; then
-        lines=24
-    fi
-
     # Generate dynamic horizontal borders matching 100% of terminal width
     border=$(printf -- '=%.0s' $(seq 1 $cols))
     divider=$(printf -- '-%.0s' $(seq 1 $cols))
@@ -57,9 +49,63 @@ while true; do
     echo -e "${GRAY}$divider${NC}"
     echo ""
 
-    # 3. Model info card
+    # 3. Live Hardware Telemetry
+    gpu_info=$(nvidia-smi --query-gpu=memory.used,memory.total,utilization.gpu,temperature.gpu --format=csv,noheader,nounits 2>/dev/null)
+    if [ -n "$gpu_info" ]; then
+        gpu_used=$(echo "$gpu_info" | awk -F', ' '{print $1}')
+        gpu_total=$(echo "$gpu_info" | awk -F', ' '{print $2}')
+        gpu_load=$(echo "$gpu_info" | awk -F', ' '{print $3}')
+        gpu_temp=$(echo "$gpu_info" | awk -F', ' '{print $4}')
+
+        # Floating point VRAM calculations in pure Bash (zero dependencies)
+        used_gb_val=$(( gpu_used / 1024 ))
+        used_mb_val=$(( (gpu_used % 1024) * 10 / 1024 ))
+        gpu_used_gb="${used_gb_val}.${used_mb_val}"
+
+        total_gb_val=$(( gpu_total / 1024 ))
+        total_mb_val=$(( (gpu_total % 1024) * 10 / 1024 ))
+        gpu_total_gb="${total_gb_val}.${total_mb_val}"
+
+        gpu_pct=$(( gpu_used * 100 / gpu_total ))
+
+        # Create VRAM Progress Bar
+        bar_width=12
+        filled=$(( gpu_pct * bar_width / 100 ))
+        empty=$(( bar_width - filled ))
+        
+        if [ "$filled" -gt 0 ]; then
+            bar_filled=$(printf -- '█%.0s' $(seq 1 $filled))
+        else
+            bar_filled=""
+        fi
+        if [ "$empty" -gt 0 ]; then
+            bar_empty=$(printf -- '░%.0s' $(seq 1 $empty))
+        else
+            bar_empty=""
+        fi
+    else
+        gpu_used_gb="N/A"
+        gpu_total_gb="N/A"
+        gpu_pct=0
+        gpu_load="N/A"
+        gpu_temp="N/A"
+        bar_filled=""
+        bar_empty="░░░░░░░░░░░░"
+    fi
+
+    # Fetch System RAM usage
+    ram_info=$(free -m | awk '/Mem:/ {printf "%.1f GB / %.1f GB (%.0f%%)\n", $3/1024, $2/1024, $3/$2*100}')
+
+    echo -e "  ${CYAN}[ HARDWARE STATUS ]${NC}"
+    echo -e "  VRAM Usage:   [${GREEN}${bar_filled}${GRAY}${bar_empty}${NC}] ${gpu_used_gb} GB / ${gpu_total_gb} GB (${gpu_pct}%)"
+    echo -e "  GPU Load/Temp: ${YELLOW}${gpu_load}% Load${NC} | ${YELLOW}${gpu_temp}°C${NC}"
+    echo -e "  System RAM:    $ram_info"
+    echo -e "${GRAY}$divider${NC}"
+    echo ""
+
+    # 4. Model info card
     if [ -z "$models_output" ]; then
-        echo -e "  ${GRAY}STATUS:     Idle (No models active in VRAM)${NC}               "
+        echo -e "  ${GRAY}STATUS:       Idle (No models active in VRAM)${NC}               "
         echo ""
         echo -e "  Active Model: ${GRAY}None${NC}                                 "
         echo -e "  Processor:    ${GRAY}N/A${NC}                                      "
@@ -93,8 +139,10 @@ while true; do
     echo -e "${CYAN}$border${NC}"
     echo -e "  Press [Ctrl+C] to exit HUD.                       "
     
-    # Instantly and silently clear the rest of the terminal below to prevent ghost lines (flicker-free!)
-    tput ed
+    # Pad out the rest of the terminal with empty spaces to prevent ghost lines during resize
+    for ((i=26; i<lines; i++)); do
+        printf "%-${cols}s\n" ""
+    done
     
     sleep 0.2
 done
