@@ -23,3 +23,6 @@ yes-always: true
 # Enable universal auto-testing/compiling to trigger the Auto-Fix Loop globally in any language
 test-cmd: vibe-check
 auto-test: true
+
+# Automatically restore previous chat history and active files on startup
+restore-chat-history: true
