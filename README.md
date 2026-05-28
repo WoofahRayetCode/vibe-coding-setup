@@ -68,6 +68,12 @@ A pure-Bash terminal telemetry dashboard runs in a split pane, giving you instan
 * **NVIDIA GPU Load & VRAM Bar**: Displays real-time GPU load, GPU temp, and exact VRAM capacity/percentage.
 * **Ollama Active States**: Tracks what models are currently loaded in VRAM, detailing exactly when Aider is `Designing Plan...`, `Applying Edits...`, or standing by.
 
+### 4. Dual-Model Reliability & Edge Cases
+Because the Editor model (`qwen2.5-coder:7b-tweaked`) operates at **Temperature 0** (greedy decoding), it follows the Architect's plans with maximum fidelity, precision, and zero creative deviation. Here is how this environment mitigates common LLM edge cases:
+* **Vague Plans / Guesswork**: If the Architect provides incomplete instructions, the Editor could introduce placeholders. *Mitigation: `Modelfile-architect` forces the 30B model to write fully completed, operational code blocks with no placeholders.*
+* **Complex Algorithmic Logic**: Highly complex programming tasks can occasionally lead to syntax slips in smaller models. *Mitigation: The `vibe-check` auto-compile loop immediately catches compiler errors, feeds them back to the 30B Architect, and automatically applies the correction.*
+* **Context Drift**: Very large files can cause smaller models to lose track of details. *Mitigation: `Modelfile-editor` configures a massive `32768` (32K) context window, keeping the Editor's attention sharp and fully inside VRAM.*
+
 ---
 
 ## 💻 Tested Hardware & Model Performance
