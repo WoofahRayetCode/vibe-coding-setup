@@ -70,6 +70,26 @@ A pure-Bash terminal telemetry dashboard runs in a split pane, giving you instan
 
 ---
 
+## 💻 Tested Hardware & Model Performance
+
+This environment is optimized and actively running on a high-performance laptop system:
+
+### **System Specifications**
+* **Device**: HP OMEN Gaming Laptop 16-ap0xxx
+* **Operating System**: CachyOS (Linux 7.0.10-1-cachyos)
+* **Processor**: AMD Ryzen 9 8940HX with Radeon Graphics (16 Cores, 32 Threads)
+* **System Memory**: 32 GB DDR5 RAM
+* **Graphics Card**: NVIDIA GeForce RTX 5060 Laptop GPU (8 GB GDDR6 VRAM)
+
+### **Model Performance & Resource Profile**
+
+| Model | Size | VRAM Allocation | Execution Profile |
+| :--- | :--- | :--- | :--- |
+| **qwen2.5-coder:7b** (Editor) | ~4.7 GB | **100% GPU VRAM** | Lightning-fast code generation and diff application. Executes in under a few seconds. |
+| **qwen3-coder:30b-tweaked** (Architect) | ~18 GB | **Hybrid GPU + CPU RAM** | Highly intelligent conceptual plans and C# structure designs, utilizing CPU system memory and GPU offloading seamlessly. |
+
+---
+
 ## 🛠️ Setup Component Breakdown
 
 Here are the key configuration files and utilities provided in this repository:
