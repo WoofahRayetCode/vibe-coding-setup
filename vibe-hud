@@ -145,13 +145,25 @@ while true; do
         cpu_bar_empty=""
     fi
 
+    # Fetch CPU temperature dynamically from /sys/class/thermal
+    cpu_temp_raw=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)
+    if [ -z "$cpu_temp_raw" ]; then
+        cpu_temp_raw=$(cat /sys/class/thermal/thermal_zone1/temp 2>/dev/null)
+    fi
+    if [ -n "$cpu_temp_raw" ] && [ "$cpu_temp_raw" -gt 0 ]; then
+        cpu_temp=$(( cpu_temp_raw / 1000 ))
+        cpu_temp_str="${cpu_temp}°C"
+    else
+        cpu_temp_str="N/A"
+    fi
+
     # C. Fetch System RAM usage
     ram_info=$(free -m | awk '/Mem:/ {printf "%.1f GB / %.1f GB (%.0f%%)\n", $3/1024, $2/1024, $3/$2*100}')
 
     echo -e "  ${CYAN}[ HARDWARE STATUS ]${NC}"
     echo -e "  VRAM Usage:   [${GREEN}${bar_filled}${GRAY}${bar_empty}${NC}] ${gpu_used_gb} GB / ${gpu_total_gb} GB (${gpu_pct}%)"
     echo -e "  GPU Load/Temp: ${YELLOW}${gpu_load}% Load${NC} | ${YELLOW}${gpu_temp}°C${NC}"
-    echo -e "  CPU Usage:    [${GREEN}${cpu_bar_filled}${GRAY}${cpu_bar_empty}${NC}] ${cpu_usage}% Load"
+    echo -e "  CPU Usage:    [${GREEN}${cpu_bar_filled}${GRAY}${cpu_bar_empty}${NC}] ${cpu_usage}% Load | ${YELLOW}${cpu_temp_str}${NC}"
     echo -e "  System RAM:    $ram_info"
     echo -e "${GRAY}$divider${NC}"
     echo ""
