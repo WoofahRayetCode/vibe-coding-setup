@@ -5,6 +5,7 @@ BLUE='\033[0;34m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 GRAY='\033[0;90m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Clear screen initially
@@ -17,24 +18,47 @@ tput civis
 trap 'tput cnorm; exit' INT TERM EXIT
 
 while true; do
+    # Fetch terminal dimensions
+    cols=$(tput cols)
+    lines=$(tput lines)
+
+    # Generate dynamic horizontal borders matching 100% of terminal width
+    border=$(printf '=%.0s' $(seq 1 $cols))
+    divider=$(printf '-%.0s' $(seq 1 $cols))
+
     # Fetch active models
     models_output=$(ollama ps 2>/dev/null | tail -n +2)
 
     # Move cursor to top left
     tput cup 0 0
 
-    echo -e "${BLUE}====================================================${NC}"
-    echo -e "${BLUE}   Local Vibe Coding - Real-Time VRAM HUD           ${NC}"
-    echo -e "${BLUE}====================================================${NC}"
+    # 1. Print Styled ASCII Header (takes up premium space)
+    echo -e "${CYAN}$border${NC}"
+    echo -e "${CYAN} __     ___ _            _   _ _   _ ____   ${NC}"
+    echo -e "${CYAN} \\ \\   / (_) |__   ___  | | | | | | |  _ \\  ${NC}"
+    echo -e "${CYAN}  \\ \\ / /| | '_ \\ / _ \\ | |_| | | | | | | | ${NC}"
+    echo -e "${CYAN}   \\ V / | | |_) |  __/ |  _  | |_| | |_| | ${NC}"
+    echo -e "${CYAN}    \\_/  |_|_.__/ \\___| |_| |_|\\___/|____/  ${NC}"
+    echo -e "${CYAN}$border${NC}"
     echo ""
 
+    # 2. General System info
+    current_time=$(date +"%Y-%m-%d %H:%M:%S")
+    echo -e "  ${CYAN}[ SYSTEM TIME ]${NC}  $current_time"
+    echo -e "  ${CYAN}[ HOST SHELL  ]${NC}  $SHELL"
+    echo -e "${GRAY}$divider${NC}"
+    echo ""
+
+    # 3. Model info card
     if [ -z "$models_output" ]; then
-        echo -e "  Status:       ${GRAY}Idle (VRAM is fully cleared)${NC}               "
+        echo -e "  ${GRAY}STATUS:     Idle (No models active in VRAM)${NC}               "
+        echo ""
         echo -e "  Active Model: ${GRAY}None${NC}                                 "
         echo -e "  Processor:    ${GRAY}N/A${NC}                                      "
         echo -e "  Cache Unload: ${GRAY}N/A${NC}                                      "
     else
-        echo -e "  Status:       ${GREEN}Active (Model in memory)${NC}                    "
+        echo -e "  ${GREEN}STATUS:     Active (AI Model is currently executing)${NC}       "
+        echo ""
         
         # Read the ollama ps columns
         echo "$models_output" | while read -r line; do
@@ -58,10 +82,13 @@ while true; do
         done
     fi
     echo ""
-    echo -e "${BLUE}====================================================${NC}"
+    echo -e "${CYAN}$border${NC}"
     echo -e "  Press [Ctrl+C] to exit HUD.                       "
-    echo -e "                                                    " # Clear trailing lines
-    echo -e "                                                    "
+    
+    # Pad out the rest of the terminal with empty spaces to prevent ghost lines during resize
+    for ((i=19; i<lines; i++)); do
+        printf "%-${cols}s\n" ""
+    done
     
     sleep 0.2
 done
