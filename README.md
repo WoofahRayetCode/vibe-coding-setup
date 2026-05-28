@@ -4,6 +4,9 @@ Welcome to the **Local Vibe Coding Environment** setup. This repository contains
 
 By leveraging **Aider** alongside **Ollama**, this environment splits complex coding tasks into a dual-model pipeline: high-level conceptual reasoning is handled by an **Architect model**, while rapid code writing is delegated to an **Editor model**.
 
+> [!NOTE]
+> This setup is currently tested and verified on **CachyOS**.
+
 ---
 
 ## 🏗️ Architecture & How It Works
