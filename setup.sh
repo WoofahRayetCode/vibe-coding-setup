@@ -79,13 +79,70 @@ else
 fi
 
 # 5. Check PATH for bin folder
-echo -e "\n${BLUE}[5/5] Checking Zsh/Bash Path Integration...${NC}"
+echo -e "\n${BLUE}[5/6] Checking Zsh/Bash Path Integration...${NC}"
 if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
     echo -e "${YELLOW}Warning: $BIN_DIR is not in your current PATH variable!${NC}"
     echo -e "${YELLOW}Please add the following to your ~/.zshrc or ~/.bashrc:${NC}"
     echo -e "export PATH=\"\$HOME/.local/bin:\$PATH\""
 else
     echo -e "${GREEN}✔ $BIN_DIR is successfully configured in PATH.${NC}"
+fi
+
+# 6. Check Git Identity & GitHub Linkage
+echo -e "\n${BLUE}[6/6] Checking Git Identity & GitHub Remote Integration...${NC}"
+
+# A. Verify Git user.name and user.email (mandatory for Aider autocommits)
+git_name=$(git config --global user.name)
+git_email=$(git config --global user.email)
+
+if [ -z "$git_name" ] || [ -z "$git_email" ]; then
+    echo -e "${YELLOW}Git identity is not fully configured! Aider requires a Git identity to autocommit changes.${NC}"
+    if [ -z "$git_name" ]; then
+        read -p "Enter your Git Name (for commits): " input_name
+        if [ -n "$input_name" ]; then
+            git config --global user.name "$input_name"
+            git_name="$input_name"
+        fi
+    fi
+    if [ -z "$git_email" ]; then
+        read -p "Enter your Git Email (for commits): " input_email
+        if [ -n "$input_email" ]; then
+            git config --global user.email "$input_email"
+            git_email="$input_email"
+        fi
+    fi
+    echo -e "${GREEN}✔ Git identity configured successfully.${NC}"
+else
+    echo -e "${GREEN}✔ Git identity detected: $git_name <$git_email>${NC}"
+fi
+
+# B. Link this repository to GitHub
+echo -e "\nWould you like to link this local setup repository to your remote GitHub repository now?"
+read -p "Link to GitHub? (y/n): " link_github
+
+if [[ "$link_github" =~ ^[Yy]$ ]]; then
+    read -p "Enter your GitHub Repository URL (e.g., https://github.com/WoofahRayetCode/vibe-coding-setup.git): " repo_url
+    if [ -n "$repo_url" ]; then
+        # Check if origin already exists
+        if git remote get-url origin &>/dev/null; then
+            echo -e "${YELLOW}An 'origin' remote already exists. Updating to new URL...${NC}"
+            git remote set-url origin "$repo_url"
+        else
+            git remote add origin "$repo_url"
+        fi
+        echo -e "${GREEN}✔ Linked 'origin' remote to: $repo_url${NC}"
+        
+        # Ask if they want to push the commits right now
+        read -p "Push to GitHub main branch right now? (y/n): " push_now
+        if [[ "$push_now" =~ ^[Yy]$ ]]; then
+            echo -e "${YELLOW}Pushing to GitHub...${NC}"
+            if git push -u origin main; then
+                echo -e "${GREEN}✔ Successfully pushed to GitHub main branch!${NC}"
+            else
+                echo -e "${RED}Warning: Push failed. Make sure the repository exists on GitHub and your credentials are configured.${NC}"
+            fi
+        fi
+    fi
 fi
 
 echo -e "\n${GREEN}==========================================================${NC}"
