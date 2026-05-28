@@ -24,7 +24,7 @@
   cache_control: false
   caches_by_default: false
   edit_format: "architect"
-  editor_edit_format: "editor-diff"
+  editor_edit_format: "editor-whole"
   editor_model_name: "ollama_chat/qwen2.5-coder:7b"
   examples_as_sys_msg: false
   extra_params: null
