@@ -8,6 +8,7 @@ YELLOW='\033[1;33m'
 GRAY='\033[0;90m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
+EL='\033[K'  # Clear to end of line
 
 # Clear screen initially
 clear
@@ -70,7 +71,7 @@ while true; do
         status_str="${YELLOW}[ STARTING / BOOTING ]${NC}"
     fi
 
-    echo -e "  ${CYAN}[ COMFYUI SERVER ]${NC}  $status_str"
+    echo -e "  ${CYAN}[ COMFYUI SERVER ]${NC}  $status_str${EL}"
     echo -e "${GRAY}$divider${NC}"
 
     # 4. Live PNG Asset List
