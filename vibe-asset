@@ -10,6 +10,7 @@ import os
 # Config
 COMFYUI_URL = "http://127.0.0.1:8188"
 DEFAULT_CHECKPOINT = "dreamshaper_8.safetensors"
+DEFAULT_LORA = "PixelArtRedmond15V-PixelArt-PIXARFK.safetensors"
 
 def show_usage():
     print("vibe-asset - Generate local AI pixel art game assets using ComfyUI")
@@ -38,6 +39,16 @@ workflow = {
         },
         "class_type": "CheckpointLoaderSimple"
     },
+    "10": {
+        "inputs": {
+            "model": ["4", 0],
+            "clip": ["4", 1],
+            "lora_name": DEFAULT_LORA,
+            "strength_model": 1.0,
+            "strength_clip": 1.0
+        },
+        "class_type": "LoraLoader"
+    },
     "5": {
         "inputs": {
             "width": 512,
@@ -49,14 +60,14 @@ workflow = {
     "6": {
         "inputs": {
             "text": final_positive_prompt,
-            "clip": ["4", 1]
+            "clip": ["10", 1]
         },
         "class_type": "CLIPTextEncode"
     },
     "7": {
         "inputs": {
             "text": final_negative_prompt,
-            "clip": ["4", 1]
+            "clip": ["10", 1]
         },
         "class_type": "CLIPTextEncode"
     },
@@ -68,7 +79,7 @@ workflow = {
             "sampler_name": "euler_ancestral",
             "scheduler": "karras",
             "denoise": 1.0,
-            "model": ["4", 0],
+            "model": ["10", 0],
             "positive": ["6", 0],
             "negative": ["7", 0],
             "latent_image": ["5", 0]

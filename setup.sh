@@ -160,12 +160,25 @@ if [[ "$setup_comfy" =~ ^[Yy]$ ]]; then
         if [ ! -f "$CKPT_FILE" ]; then
             echo -e "${YELLOW}Downloading 2GB DreamShaper 8 model checkpoint...${NC}"
             if curl -L -o "$CKPT_FILE" "https://huggingface.co/Lykon/DreamShaper/resolve/main/DreamShaper_8_pruned.safetensors"; then
-                echo -e "${GREEN}✔ Downloaded model checkpoint successfully.${NC}"
+                echo -e "${GREEN}✔ Downloaded DreamShaper 8 model checkpoint successfully.${NC}"
             else
-                echo -e "${RED}Failed to download model checkpoint! You may need to download it manually.${NC}"
+                echo -e "${RED}Failed to download DreamShaper 8 model checkpoint! You may need to download it manually.${NC}"
             fi
         else
-            echo -e "${GREEN}✔ Model checkpoint already exists.${NC}"
+            echo -e "${GREEN}✔ DreamShaper 8 model checkpoint already exists.${NC}"
+        fi
+
+        # Download Pixel Art Diffusion Checkpoint
+        PIXEL_CKPT="$COMFY_DIR/models/checkpoints/pixelartDiffusion_v10.safetensors"
+        if [ ! -f "$PIXEL_CKPT" ]; then
+            echo -e "${YELLOW}Downloading 2.1GB Pixel Art Diffusion model checkpoint...${NC}"
+            if curl -L -o "$PIXEL_CKPT" "https://huggingface.co/Jonas-Mugge/pixel-art-diffusion/resolve/main/pixelartDiffusion_v10.safetensors"; then
+                echo -e "${GREEN}✔ Downloaded Pixel Art Diffusion model successfully.${NC}"
+            else
+                echo -e "${RED}Failed to download Pixel Art Diffusion model! You may need to download it manually.${NC}"
+            fi
+        else
+            echo -e "${GREEN}✔ Pixel Art Diffusion model already exists.${NC}"
         fi
     fi
 fi
