@@ -18,29 +18,14 @@ if tmux has-session -t vibe-coding 2>/dev/null; then
     exit 0
 fi
 
-# Create a new tmux session named 'vibe-coding'
-tmux new-session -d -s vibe-coding
+# Create a new tmux session named 'vibe-coding' running Aider as the primary process
+tmux new-session -d -s vibe-coding -n 'Vibe Workspace' 'aider'
 
-# Rename first window
-tmux rename-window -t vibe-coding 'Vibe Workspace'
+# Split the workspace horizontally and run 'vibe-hud' in the right pane (35% width)
+tmux split-window -h -p 35 -t vibe-coding "$HOME/.local/bin/vibe-hud"
 
-# Split the workspace horizontally (creates top-left and top-right panes)
-# Top-Left gets 65% width (for Aider), Top-Right gets 35% width (for vibe-hud)
-tmux split-window -h -p 35 -t vibe-coding
-
-# Split the entire window vertically from the bottom (full-width bottom pane)
-# Bottom pane gets 30% height of the total terminal frame
-tmux split-window -v -f -p 30 -t vibe-coding
-
-# Route commands explicitly to their designated pane indices for absolute reliability
-# Pane 0.0: Top-Left (Aider)
-tmux send-keys -t vibe-coding:0.0 'aider' C-m
-
-# Pane 0.1: Top-Right (vibe-hud)
-tmux send-keys -t vibe-coding:0.1 'vibe-hud' C-m
-
-# Pane 0.2: Bottom Full-Width (vibe-asset-monitor / ComfyUI)
-tmux send-keys -t vibe-coding:0.2 'vibe-asset-monitor' C-m
+# Split the entire window vertically from the bottom and run 'vibe-asset-monitor' (30% height, full-width)
+tmux split-window -v -f -p 30 -t vibe-coding "$HOME/.local/bin/vibe-asset-monitor"
 
 # Select the main coding pane (Aider) as active by default
 tmux select-pane -t vibe-coding:0.0
