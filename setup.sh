@@ -26,8 +26,8 @@ echo -e "${GREEN}✔ Ollama is active and running.${NC}"
 # 2. Build/tweaked Ollama models
 echo -e "\n${BLUE}[2/5] Building Customized Tweaked Models in Ollama...${NC}"
 
-if [ ! -f "Modelfile-architect" ] || [ ! -f "Modelfile-agent" ]; then
-    echo -e "${RED}Error: Modelfile-architect or Modelfile-agent not found in current folder!${NC}"
+if [ ! -f "Modelfile-architect" ]; then
+    echo -e "${RED}Error: Modelfile-architect not found in current folder!${NC}"
     exit 1
 fi
 
@@ -36,13 +36,6 @@ if ollama create qwen3-coder:30b-tweaked -f Modelfile-architect; then
     echo -e "${GREEN}✔ qwen3-coder:30b-tweaked built successfully.${NC}"
 else
     echo -e "${RED}Failed to build qwen3-coder:30b-tweaked. Make sure you pulled 'qwen3-coder:30b' first.${NC}"
-fi
-
-echo -e "\n${YELLOW}Building qwen3-coder-next-tweaked (Agent)...${NC}"
-if ollama create qwen3-coder-next-tweaked -f Modelfile-agent; then
-    echo -e "${GREEN}✔ qwen3-coder-next-tweaked built successfully.${NC}"
-else
-    echo -e "${RED}Failed to build qwen3-coder-next-tweaked. Make sure you pulled 'qwen3-coder-next' first.${NC}"
 fi
 
 # 3. Install vibe-check and vibe-hud scripts

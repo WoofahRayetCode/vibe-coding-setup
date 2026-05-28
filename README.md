@@ -17,7 +17,7 @@ This setup operates on a **split-brain architecture** that separates reasoning f
                               │
                               ▼
                   ┌────────────────────────┐
-                  │   Architect (30B MoE)  │ ◄─── Uses qwen3-coder:30b-tweaked
+                  │    Architect (30B)     │ ◄─── Uses qwen3-coder:30b-tweaked
                   │  (Designs & Plans)     │      Configured with 32K context
                   └───────────┬────────────┘
                               │
@@ -74,9 +74,8 @@ Here are the key configuration files and utilities provided in this repository:
 | File / Folder | Role | Description |
 | :--- | :--- | :--- |
 | [`Modelfile-architect`](Modelfile-architect) | Model Template | Tweaked Ollama configuration for `qwen3-coder:30b` (low temperature, 32K context window, tailored system instructions). |
-| [`Modelfile-agent`](Modelfile-agent) | Model Template | Tweaked Ollama configuration for `qwen3-coder-next` (80B MoE agent, 64K context window). |
 | [`.aider.conf.yml`](.aider.conf.yml) | Global Config | Global settings for Aider. Enables architect mode, sets `vibe-check` as the test command, activates auto-testing, enables git history restore, and activates hands-free prompts. |
-| [`.aider.model.settings.yml`](.aider.model.settings.yml) | Model Settings | Configures model settings. Force-pairs `qwen3-coder:30b-tweaked` (Architect) with `qwen2.5-coder:7b` (Editor), configures `editor-diff` format, and expands the Repository Map token budget. |
+| [`.aider.model.settings.yml`](.aider.model.settings.yml) | Model Settings | Configures model settings. Force-pairs `qwen3-coder:30b-tweaked` (Architect) with `qwen2.5-coder:7b` (Editor), configures `editor-whole` format, and expands the Repository Map token budget. |
 | [`vibe-check`](vibe-check) | Executable | The universal, language-agnostic compile and test runner. |
 | [`vibe-hud`](vibe-hud) | Executable | The terminal-based telemetry and active Ollama model status dashboard. |
 | [`setup.sh`](setup.sh) | Shell Script | Automates building models in Ollama, installing executables to `~/.local/bin/`, and copying configurations to `~/.aider.conf.yml` and `~/.aider.model.settings.yml`. |
@@ -90,7 +89,6 @@ Ensure you have **Ollama** installed, running, and the base models pulled:
 ```bash
 ollama pull qwen3-coder:30b
 ollama pull qwen2.5-coder:7b
-ollama pull qwen3-coder-next   # Optional (for 80B MoE Agent mode)
 ```
 
 ### Step 2: Run the Installer
