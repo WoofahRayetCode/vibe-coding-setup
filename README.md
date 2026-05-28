@@ -78,7 +78,8 @@ Here are the key configuration files and utilities provided in this repository:
 | [`.aider.model.settings.yml`](.aider.model.settings.yml) | Model Settings | Configures model settings. Force-pairs `qwen3-coder:30b-tweaked` (Architect) with `qwen2.5-coder:7b` (Editor), configures `editor-whole` format, and expands the Repository Map token budget. |
 | [`vibe-check`](vibe-check) | Executable | The universal, language-agnostic compile and test runner. |
 | [`vibe-hud`](vibe-hud) | Executable | The terminal-based telemetry and active Ollama model status dashboard. |
-| [`setup.sh`](setup.sh) | Shell Script | Automates building models in Ollama, installing executables to `~/.local/bin/`, and copying configurations to `~/.aider.conf.yml` and `~/.aider.model.settings.yml`. |
+| [`aider.fish`](aider.fish) | Shell Integration | Fish Shell wrapper function. Automatically archives Large chat history files (>25KB) on startup to prevent local CPU connection timeout loops. |
+| [`setup.sh`](setup.sh) | Shell Script | Automates building models in Ollama, installing executables to `~/.local/bin/`, copying configuration files, and installing shell integrations. |
 
 ---
 

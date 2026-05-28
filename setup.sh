@@ -61,8 +61,8 @@ else
     exit 1
 fi
 
-# 4. Copy Aider configuration files
-echo -e "\n${BLUE}[4/5] Copying Global Aider Configuration Files...${NC}"
+# 4. Copy Aider configuration files & Shell integrations
+echo -e "\n${BLUE}[4/5] Copying Global Aider Configuration Files & Shell Integrations...${NC}"
 
 if [ -f ".aider.conf.yml" ]; then
     cp .aider.conf.yml "$HOME/.aider.conf.yml"
@@ -76,6 +76,11 @@ if [ -f ".aider.model.settings.yml" ]; then
     echo -e "${GREEN}✔ Copied model settings to ~/.aider.model.settings.yml.${NC}"
 else
     echo -e "${YELLOW}Warning: .aider.model.settings.yml not found. Skipping.${NC}"
+fi
+
+if [ -f "aider.fish" ] && [ -d "$HOME/.config/fish/functions" ]; then
+    cp aider.fish "$HOME/.config/fish/functions/aider.fish"
+    echo -e "${GREEN}✔ Copied Fish Shell function integration to ~/.config/fish/functions/aider.fish.${NC}"
 fi
 
 # 5. Check PATH for bin folder
