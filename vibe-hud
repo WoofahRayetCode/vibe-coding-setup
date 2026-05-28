@@ -85,10 +85,8 @@ while true; do
     echo -e "${CYAN}$border${NC}"
     echo -e "  Press [Ctrl+C] to exit HUD.                       "
     
-    # Pad out the rest of the terminal with empty spaces to prevent ghost lines during resize
-    for ((i=19; i<lines; i++)); do
-        printf "%-${cols}s\n" ""
-    done
+    # Instantly and silently clear the rest of the terminal below to prevent ghost lines (flicker-free!)
+    tput ed
     
     sleep 0.2
 done
