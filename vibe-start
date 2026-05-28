@@ -20,6 +20,13 @@ fi
 # Check if session already exists to prevent duplicate splits and double-run commands
 if tmux has-session -t vibe-coding 2>/dev/null; then
     echo -e "\e[0;33mSession 'vibe-coding' is already running.\e[0m"
+    if [ -n "$1" ]; then
+        echo -e "\e[0;31mWarning: You specified a new directory '$1', but cannot switch while the session is active!\e[0m"
+        echo -e "To switch to your new folder, please close the current session first:"
+        echo -e "  👉 \e[0;32mtmux kill-session -t vibe-coding\e[0m"
+        echo -e "  👉 Then run your command again!"
+        exit 1
+    fi
     echo -e "Attaching to the existing session..."
     sleep 1
     tmux attach-session -t vibe-coding
