@@ -145,6 +145,10 @@ if [[ "$setup_comfy" =~ ^[Yy]$ ]]; then
         echo -e "${YELLOW}Installing ComfyUI pip dependencies...${NC}"
         "$COMFY_DIR/venv/bin/pip" install -r "$COMFY_DIR/requirements.txt"
         
+        # Install CPU torchaudio to prevent CUDA compilation conflicts with Pacman PyTorch
+        echo -e "${YELLOW}Configuring system-compatible CPU torchaudio wheel...${NC}"
+        "$COMFY_DIR/venv/bin/pip" install torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
+        
         # Download DreamShaper 8 Checkpoint
         CKPT_FILE="$COMFY_DIR/models/checkpoints/dreamshaper_8.safetensors"
         if [ ! -f "$CKPT_FILE" ]; then
