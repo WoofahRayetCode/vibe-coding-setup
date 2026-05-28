@@ -21,7 +21,7 @@ This setup operates on a **split-brain architecture** that separates reasoning f
                               ▼
                   ┌────────────────────────┐
                   │    Architect (30B)     │ ◄─── Uses qwen3-coder:30b-tweaked
-                  │  (Designs & Plans)     │      Configured with 32K context
+                  │  (Designs & Plans)     │      Configured with 16K context
                   └───────────┬────────────┘
                               │
                               ▼  Delegates instructions
@@ -102,7 +102,7 @@ Here are the key configuration files and utilities provided in this repository:
 
 | File / Folder | Role | Description |
 | :--- | :--- | :--- |
-| [`Modelfile-architect`](Modelfile-architect) | Model Template | Tweaked Ollama configuration for `qwen3-coder:30b` (low temperature, 32K context window, tailored system instructions). |
+| [`Modelfile-architect`](Modelfile-architect) | Model Template | Tweaked Ollama configuration for `qwen3-coder:30b` (low temperature, 16K context window, tailored system instructions, and physical CPU core threading). |
 | [`Modelfile-editor`](Modelfile-editor) | Model Template | Tweaked Ollama configuration for `qwen2.5-coder:7b` (deterministic temperature, 32K context, zero-filler coding instructions). |
 | [`.aider.conf.yml`](.aider.conf.yml) | Global Config | Global settings for Aider. Enables architect mode, sets `vibe-check` as the test command, activates auto-testing, enables git history restore, and activates hands-free prompts. |
 | [`.aider.model.settings.yml`](.aider.model.settings.yml) | Model Settings | Configures model settings. Force-pairs `qwen3-coder:30b-tweaked` (Architect) with `qwen2.5-coder:7b-tweaked` (Editor), configures `editor-whole` format, and expands the Repository Map token budget. |
