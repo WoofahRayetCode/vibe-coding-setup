@@ -1,0 +1,29 @@
+#!/bin/bash
+# vibe-start - Start Aider and vibe-hud side-by-side in Tmux
+
+# Check if tmux is installed
+if ! command -v tmux &> /dev/null; then
+    echo -e "\e[0;31mError: 'tmux' is not installed!\e[0m"
+    echo -e "To launch side-by-side splits, please install tmux first."
+    echo -e "On Arch / CachyOS: \e[0;32msudo pacman -S tmux\e[0m"
+    exit 1
+fi
+
+# Create a new tmux session named 'vibe-coding'
+tmux new-session -d -s vibe-coding
+
+# Rename first window
+tmux rename-window -t vibe-coding 'Vibe Workspace'
+
+# Start Aider in the left pane (70% width)
+tmux send-keys -t vibe-coding 'aider' C-m
+
+# Split the pane horizontally (right split, 30% width) and run vibe-hud
+tmux split-window -h -p 30 -t vibe-coding
+tmux send-keys -t vibe-coding 'vibe-hud' C-m
+
+# Select the left pane (Aider) as active
+tmux select-pane -t vibe-coding:0.0
+
+# Attach to the tmux session
+tmux attach-session -t vibe-coding

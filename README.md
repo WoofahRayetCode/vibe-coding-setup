@@ -78,6 +78,7 @@ Here are the key configuration files and utilities provided in this repository:
 | [`.aider.model.settings.yml`](.aider.model.settings.yml) | Model Settings | Configures model settings. Force-pairs `qwen3-coder:30b-tweaked` (Architect) with `qwen2.5-coder:7b` (Editor), configures `editor-whole` format, and expands the Repository Map token budget. |
 | [`vibe-check`](vibe-check) | Executable | The universal, language-agnostic compile and test runner. |
 | [`vibe-hud`](vibe-hud) | Executable | The terminal-based telemetry and active Ollama model status dashboard. |
+| [`vibe-start`](vibe-start) | Executable | Terminal workspace manager. Automatically launches Aider and `vibe-hud` side-by-side in a split window session using Tmux. |
 | [`aider.fish`](aider.fish) | Shell Integration | Fish Shell wrapper function. Automatically archives Large chat history files (>25KB) on startup to prevent local CPU connection timeout loops. |
 | [`setup.sh`](setup.sh) | Shell Script | Automates building models in Ollama, installing executables to `~/.local/bin/`, copying configuration files, and installing shell integrations. |
 
@@ -104,6 +105,19 @@ This script will build your custom tweaked models, install `vibe-check` and `vib
 > Make sure `~/.local/bin` is in your Shell's `PATH` variable. If it is not, add `export PATH="$HOME/.local/bin:$PATH"` to your `~/.zshrc` or `~/.bashrc`.
 
 ### Step 3: Run the Environment
+
+You have two excellent choices to run this workspace:
+
+#### Option A: Side-by-Side Split Window Workspace (Recommended 🚀)
+If you have **`tmux`** installed, navigate to your active repository and run the unified workspace command:
+```bash
+vibe-start
+```
+This automatically launches a split-pane layout: **Aider** will open in the left pane (70% width) and **vibe-hud** will open in the right pane (30% width) in a single, gorgeous terminal frame!
+* *To close the session*: Exit Aider (type `/exit` or `Ctrl+D`) and then close the panes (type `exit` or press `Ctrl+D` in `vibe-hud`).
+
+#### Option B: Manual Multi-Terminal Panes
+If you prefer standard windows or don't use tmux:
 1. **Open a split terminal pane** and start the telemetry dashboard:
    ```bash
    vibe-hud
@@ -112,7 +126,7 @@ This script will build your custom tweaked models, install `vibe-check` and `vib
    ```bash
    aider
    ```
-3. Type your feature requests or bug reports in Aider, sit back, and watch the HUD swap models and compile code dynamically in real time!
+3. Type your feature requests in Aider and watch the HUD swap models and compile code dynamically in real time!
 
 ---
 

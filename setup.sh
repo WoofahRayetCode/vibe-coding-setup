@@ -61,6 +61,12 @@ else
     exit 1
 fi
 
+if [ -f "vibe-start" ]; then
+    cp vibe-start "$BIN_DIR/vibe-start"
+    chmod +x "$BIN_DIR/vibe-start"
+    echo -e "${GREEN}✔ Installed 'vibe-start' to $BIN_DIR/vibe-start.${NC}"
+fi
+
 # 4. Copy Aider configuration files & Shell integrations
 echo -e "\n${BLUE}[4/5] Copying Global Aider Configuration Files & Shell Integrations...${NC}"
 
