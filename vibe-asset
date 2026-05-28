@@ -28,8 +28,18 @@ file_prefix = sys.argv[2] if len(sys.argv) > 2 else "vibe_asset"
 file_prefix = "".join(c for c in file_prefix if c.isalnum() or c in ("_", "-")).rstrip()
 
 # Inject optimized pixel-art prompts
-final_positive_prompt = f"{prompt_text}, retro pixel art style, 16-bit sprite, flat solid background, clean pixels, sharp details, isolated game asset"
-final_negative_prompt = "low quality, blurry, worst quality, 3d render, photorealistic, gradient background, depth of field, shadow cast"
+# Dynamically detect if the user wants a full-frame repeating texture/ground instead of an isolated item sprite
+texture_keywords = ["texture", "ground", "wall", "pattern", "seamless", "tileable", "background", "floor"]
+is_texture = any(kw in prompt_text.lower() for kw in texture_keywords)
+
+if is_texture:
+    # Full-frame texture settings (no backgrounds, no borders, pure tileable pattern)
+    final_positive_prompt = f"{prompt_text}, retro pixel art style, 16-bit, seamless tileable pattern, full frame texture, clean pixels, sharp details"
+    final_negative_prompt = "low quality, blurry, worst quality, 3d render, photorealistic, depth of field, isolated object, border, frame, background, floating item, multiple items, diagrams"
+else:
+    # Standard isolated item/character settings
+    final_positive_prompt = f"{prompt_text}, retro pixel art style, 16-bit sprite, flat solid background, clean pixels, sharp details, isolated game asset"
+    final_negative_prompt = "low quality, blurry, worst quality, 3d render, photorealistic, gradient background, depth of field, shadow cast"
 
 # Standard txt2img ComfyUI Workflow JSON
 workflow = {
