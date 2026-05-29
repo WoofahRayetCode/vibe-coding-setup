@@ -230,29 +230,71 @@ while true; do
         fi
     fi
 
-    # Resolve status tags
+    # Resolve highly granular status tags
+    is_compiling=0
+    if pgrep -x vibe-check >/dev/null || pgrep -f dotnet >/dev/null || pgrep -f "godot --headless" >/dev/null; then
+        is_compiling=1
+    fi
+
+    # Detect high GPU activity
+    is_gpu_busy=0
+    if [ -n "$gpu_load" ] && [ "$gpu_load" != "N/A" ] 2>/dev/null; then
+        if [ "$gpu_load" -gt 15 ] 2>/dev/null; then
+            is_gpu_busy=1
+        fi
+    fi
+
     if [ "$aider_running" -eq 0 ]; then
         arch_status="${GRAY}[  IDLE  ]${NC} (Aider stopped)"
         edit_status="${GRAY}[  IDLE  ]${NC} (Aider stopped)"
     elif [ -n "$single_model" ]; then
         if [ "$arch_active" -eq 1 ]; then
-            arch_status="${GREEN}[ ACTIVE ]${NC} ◀ Processing..."
+            if [ "$is_gpu_busy" -eq 1 ]; then
+                if [ "$single_model" = "deepseek-coder-v2:16b-translate" ]; then
+                    arch_status="${MAGENTA}[TRANSLATING]${NC} ◀ Converting logic & API..."
+                else
+                    arch_status="${BLUE}[GENERATING]${NC} ◀ Processing solution..."
+                fi
+            elif [ "$is_compiling" -eq 1 ]; then
+                arch_status="${YELLOW}[ VERIFYING ]${NC} ◀ Running vibe-check..."
+            else
+                arch_status="${GREEN}[  READY  ]${NC} ◀ Awaiting task..."
+            fi
         else
-            arch_status="${YELLOW}[ STANDBY ]${NC} Awaiting input..."
+            arch_status="${YELLOW}[ SLEEPING ]${NC} ◀ Unloaded from VRAM"
         fi
         edit_status="${GRAY}[  N/A   ]${NC} (Single Model Mode)"
-    elif [ "$arch_active" -eq 1 ] && [ "$edit_active" -eq 1 ]; then
-        arch_status="${BLUE}[ ACTIVE ]${NC}"
-        edit_status="${GREEN}[ ACTIVE ]${NC}"
-    elif [ "$arch_active" -eq 1 ] && [ "$edit_active" -eq 0 ]; then
-        arch_status="${BLUE}[ ACTIVE ]${NC} ◀ Designing Plan..."
-        edit_status="${YELLOW}[ STANDBY ]${NC}  Awaiting plan..."
-    elif [ "$arch_active" -eq 0 ] && [ "$edit_active" -eq 1 ]; then
-        arch_status="${GRAY}[  IDLE  ]${NC}"
-        edit_status="${GREEN}[ ACTIVE ]${NC} ◀ Applying Edits..."
     else
-        arch_status="${GRAY}[  IDLE  ]${NC}"
-        edit_status="${GRAY}[  IDLE  ]${NC}"
+        # Dual-Model Mode (Qwen 30B/7B)
+        if [ "$is_compiling" -eq 1 ]; then
+            arch_status="${GREEN}[  READY  ]${NC} ◀ Awaiting task..."
+            edit_status="${YELLOW}[ COMPILING ]${NC} ◀ Running vibe-check..."
+        elif [ "$is_gpu_busy" -eq 1 ]; then
+            # If GPU is busy, determine which model is active based on loaded states
+            if [ "$edit_active" -eq 1 ] && [ "$arch_active" -eq 0 ]; then
+                arch_status="${GREEN}[  READY  ]${NC} ◀ Awaiting task..."
+                edit_status="${GREEN}[  WRITING  ]${NC} ◀ Applying diff blocks..."
+            elif [ "$arch_active" -eq 1 ] && [ "$edit_active" -eq 0 ]; then
+                arch_status="${BLUE}[ THINKING  ]${NC} ◀ Designing system plan..."
+                edit_status="${YELLOW}[ STANDBY   ]${NC} Awaiting plan..."
+            else
+                arch_status="${BLUE}[ THINKING  ]${NC} ◀ Active planning..."
+                edit_status="${GREEN}[  WRITING  ]${NC} ◀ Active writing..."
+            fi
+        else
+            # Standby states when idle
+            if [ "$arch_active" -eq 1 ]; then
+                arch_status="${GREEN}[  READY  ]${NC} ◀ Awaiting task..."
+            else
+                arch_status="${YELLOW}[ SLEEPING  ]${NC} ◀ Unloaded from VRAM"
+            fi
+
+            if [ "$edit_active" -eq 1 ]; then
+                edit_status="${GREEN}[  READY  ]${NC} ◀ Awaiting edits..."
+            else
+                edit_status="${YELLOW}[ SLEEPING  ]${NC} ◀ Unloaded from VRAM"
+            fi
+        fi
     fi
 
     if [ -n "$single_model" ]; then
