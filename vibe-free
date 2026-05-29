@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# CHANGELOG:
+# - Created script to globally force-unload Ollama and ComfyUI models from VRAM
+
+echo -e "\e[0;33m[VIBE] Freeing GPU VRAM...\e[0m"
+
+# 1. Unload Ollama models
+models=$(ollama ps | awk 'NR>1 {print $1}')
+for model in $models; do
+    echo "Unloading Ollama model: $model"
+    ollama stop "$model"
+done
+
+# 2. Free ComfyUI models
+echo "Sending unload request to ComfyUI..."
+curl -s -X POST http://127.0.0.1:8188/free -d '{"unload_models":true}' > /dev/null
+
+echo -e "\e[0;32m[VIBE] VRAM successfully freed!\e[0m"

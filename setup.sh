@@ -4,6 +4,9 @@
 # Polyglot Local Vibe Coding Environment Installer/Setup
 # ==========================================================
 
+# CHANGELOG:
+# - Added installation routine for the new vibe-free script
+
 # Colors for terminal output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -77,6 +80,12 @@ if [ -f "vibe-asset" ]; then
     cp vibe-asset "$BIN_DIR/vibe-asset"
     chmod +x "$BIN_DIR/vibe-asset"
     echo -e "${GREEN}✔ Installed 'vibe-asset' to $BIN_DIR/vibe-asset.${NC}"
+fi
+
+if [ -f "vibe-free" ]; then
+    cp vibe-free "$BIN_DIR/vibe-free"
+    chmod +x "$BIN_DIR/vibe-free"
+    echo -e "${GREEN}✔ Installed 'vibe-free' to $BIN_DIR/vibe-free.${NC}"
 fi
 
 if [ -f "vibe-asset-monitor" ]; then

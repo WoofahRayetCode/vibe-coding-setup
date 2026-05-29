@@ -1,6 +1,10 @@
 #!/bin/bash
 # vibe-commands - Dynamic auto-cycling cheatsheet designed for compact terminal panes
 
+# CHANGELOG:
+# - Added vibe-free command to the custom commands cheat sheet list
+# - Fixed terminal height calculation to accommodate the new command
+
 # Colors for terminal output
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
@@ -40,6 +44,7 @@ draw_page() {
             echo -e "  ${GREEN}vibe-check${NC}              Auto build/test project${EL}"
             echo -e "  ${GREEN}vibe-hud${NC}                Live system telemetry monitor${EL}"
             echo -e "  ${GREEN}vibe-asset-monitor${NC}      Workspace new asset tracker${EL}"
+            echo -e "  ${GREEN}vibe-free${NC}               Free GPU VRAM (Ollama+ComfyUI)${EL}"
             ;;
         1)
             echo -e "${YELLOW}═══ AIDER CO-PILOT COMMANDS [2/3] ═══${NC}${EL}"
@@ -67,7 +72,6 @@ draw_page() {
     
     # Track the height to clear remaining lines in smaller splits to prevent ghosting
     lines_printed=9
-    [ $page -eq 0 ] && lines_printed=8
     [ $page -eq 2 ] && lines_printed=8
     
     current_lines=$(tput lines)

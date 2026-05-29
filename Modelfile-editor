@@ -1,9 +1,12 @@
 FROM qwen2.5-coder:7b
 
+# CHANGELOG:
+# - Reduced num_ctx from 32768 to 16384 to alleviate cudaMalloc OOM issues on 8GB GPUs
+
 # Sampling tweaks for high-speed, deterministic, precise code editing
 PARAMETER temperature 0.0
 PARAMETER top_p 0.9
-PARAMETER num_ctx 32768
+PARAMETER num_ctx 16384
 PARAMETER num_predict 8192
 
 # GPU offload optimization forcing 100% RTX 5060 VRAM allocation

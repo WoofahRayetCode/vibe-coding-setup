@@ -1,6 +1,10 @@
 #!/bin/bash
 # vibe-start - Start Aider and vibe-hud side-by-side in Tmux
 
+# CHANGELOG:
+# - Now gracefully kills existing vibe-coding sessions before starting
+# - Executes vibe-free immediately after session kill to flush VRAM
+
 # Check if tmux is installed
 if ! command -v tmux &> /dev/null; then
     echo -e "\e[0;31mError: 'tmux' is not installed!\e[0m"
@@ -17,20 +21,16 @@ if [ -n "$1" ]; then
         exit 1
     fi
 fi
-# Check if session already exists to prevent duplicate splits and double-run commands
+# Check if session already exists, and kill it to ensure a fresh start
 if tmux has-session -t vibe-coding 2>/dev/null; then
-    echo -e "\e[0;33mSession 'vibe-coding' is already running.\e[0m"
-    if [ -n "$1" ]; then
-        echo -e "\e[0;31mWarning: You specified a new directory '$1', but cannot switch while the session is active!\e[0m"
-        echo -e "To switch to your new folder, please close the current session first:"
-        echo -e "  👉 \e[0;32mtmux kill-session -t vibe-coding\e[0m"
-        echo -e "  👉 Then run your command again!"
-        exit 1
-    fi
-    echo -e "Attaching to the existing session..."
+    echo -e "\e[0;33mClosing existing 'vibe-coding' session...\e[0m"
+    tmux kill-session -t vibe-coding
     sleep 1
-    tmux attach-session -t vibe-coding
-    exit 0
+fi
+
+# Ensure all background AI models are unloaded before starting
+if command -v vibe-free &> /dev/null; then
+    vibe-free
 fi
 
 # Create a new tmux session named 'vibe-coding' running Aider as the primary process

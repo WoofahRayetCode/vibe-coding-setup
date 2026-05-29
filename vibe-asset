@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+
+# CHANGELOG:
+# - Added free_ollama_vram() to clear GPU memory before ComfyUI generation
+
 import sys
 import json
 import urllib.request
@@ -7,6 +11,7 @@ import time
 import random
 import os
 import argparse
+import subprocess
 
 # Config
 COMFYUI_URL = "http://127.0.0.1:8188"
@@ -22,6 +27,19 @@ def refresh_comfyui():
     except Exception:
         # Ignore refresh failures silently
         pass
+
+def free_ollama_vram():
+    """Unload all Ollama models to free up VRAM for ComfyUI."""
+    try:
+        print("🧹 Freeing GPU VRAM from Ollama models...")
+        result = subprocess.run(["ollama", "ps"], capture_output=True, text=True)
+        lines = result.stdout.strip().split('\n')
+        if len(lines) > 1:
+            for line in lines[1:]:
+                model = line.split()[0]
+                subprocess.run(["ollama", "stop", model], capture_output=True)
+    except Exception as e:
+        print(f"Warning: Failed to free Ollama VRAM: {e}")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -228,6 +246,9 @@ Examples:
 
     print(f"🎨 Generating asset: \"{prompt_text}\" ({width}x{height})")
     print(f"🔌 Connecting to local ComfyUI API at {COMFYUI_URL}...")
+
+    # Free Ollama models to ensure VRAM is available
+    free_ollama_vram()
 
     # Refresh ComfyUI to reload newly downloaded files
     refresh_comfyui()
