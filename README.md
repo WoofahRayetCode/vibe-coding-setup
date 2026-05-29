@@ -141,6 +141,8 @@ Here are the key configuration files and utilities provided in this repository:
 | [`vibe-start`](vibe-start) | Executable | Terminal workspace launcher managing Tmux panes and active profile spins. |
 | [`aider.fish`](aider.fish) | Shell Integration | Fish Shell integration wrapper preventing startup timeouts by auto-archiving history. |
 | [`setup.sh`](setup.sh) | Shell Script | Automated setup installer managing downloads, paths, and local compilations. |
+| [`setup-voice.sh`](setup-voice.sh) | Shell Script | Configures local GPU dictation and hotkey bindings. |
+| [`setup-all.sh`](setup-all.sh) | Shell Script | **Master Automation Installer**: Runs the entire setup from model downloads to Voice dictation. |
 
 ---
 
@@ -155,13 +157,13 @@ ollama pull deepseek-coder-v2:16b
 ollama pull dolphin-llama3:8b
 ```
 
-### Step 2: Run the Installer
-Clone this repository and run the setup script:
+### Step 2: Run the Master Installer
+Clone this repository and run the unified automation installer to build everything in one shot (including voice dictation and downloading models):
 ```bash
-chmod +x setup.sh
-./setup.sh
+chmod +x setup-all.sh
+./setup-all.sh
 ```
-This script will build your custom tweaked models, install all system utilities to `~/.local/bin`, and configure your global Aider environment.
+*Note: If you only want to install the coding scripts and configuration without installing voice-to-text, you can run `./setup.sh` instead.*
 
 > [!NOTE]
 > Make sure `~/.local/bin` is in your Shell's `PATH` variable. If it is not, add `export PATH="$HOME/.local/bin:$PATH"` to your `~/.zshrc` or `~/.bashrc`.
