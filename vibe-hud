@@ -40,26 +40,26 @@ idx_languages=0
 ticker_models=" [QWEN 30B] Architect model optimized with 16K context windows for complex systems planning.  |  [QWEN 7B] Editor model locked at Temperature 0 for rapid, deterministic diff modifications.  |  [DEEPSEEK 16B] Specialized translator profile handles cross-language APIs with full comments preservation.  |  [DOLPHIN 8B] Uncensored model locks all 33 layers into VRAM for boundary-free programming. "
 idx_models=0
 
-# Frames for thinking ASCII question mark animation (4 frames, 4 lines each)
+# Frames for spinning 3D ASCII question mark animation (4 frames, 4 lines each)
 q_frame0_0="   .---. "
 q_frame0_1="  /  .  \\"
 q_frame0_2="    /  / "
 q_frame0_3="    (o)  "
 
-q_frame1_0="   .---. "
-q_frame1_1="  /  .  \\"
-q_frame1_2="    |  | "
-q_frame1_3="    (O)  "
+q_frame1_0="    .-.  "
+q_frame1_1="   / . \ "
+q_frame1_2="    / /  "
+q_frame1_3="    (o)  "
 
-q_frame2_0="   .---. "
-q_frame2_1="  /  .  \\"
-q_frame2_2="    \\  \\ "
+q_frame2_0="     |   "
+q_frame2_1="     |   "
+q_frame2_2="     |   "
 q_frame2_3="    (o)  "
 
-q_frame3_0="   .---. "
-q_frame3_1="  /  .  \\"
-q_frame3_2="    |  | "
-q_frame3_3="    (O)  "
+q_frame3_0="    .-.  "
+q_frame3_1="   / . \ "
+q_frame3_2="    \ \  "
+q_frame3_3="    (o)  "
 
 # Restore cursor on exit
 trap 'tput cnorm; exit' INT TERM EXIT
