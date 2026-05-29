@@ -32,6 +32,7 @@ draw_cheatsheet() {
     echo -e "    ${GRAY}Profiles:${NC} gamedev, general${EL}"
     echo -e "  ${GREEN}vibe-translate <src> <tgt>${NC}       File translation${EL}"
     echo -e "  ${GREEN}vibe-asset <prompt>${NC}               Generate sprites${EL}"
+    echo -e "    ${GRAY}Art Guide:${NC} prompts/pixel-art-guide.md${EL}"
     echo -e "  ${GREEN}vibe-free${NC}                         Free GPU VRAM${EL}"
     
     echo -e "${YELLOW}═══ AIDER CO-PILOT COMMANDS ════════════════════════${NC}${EL}"
@@ -46,7 +47,7 @@ draw_cheatsheet() {
     
     # Fill remaining space to prevent ghosting
     current_lines=$(tput lines)
-    for ((i=17; i<current_lines; i++)); do
+    for ((i=18; i<current_lines; i++)); do
         echo -e "${EL}"
     done
 }
