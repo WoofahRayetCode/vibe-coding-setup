@@ -1,0 +1,23 @@
+#!/bin/bash
+# vibe-asset-menu - Looping interactive asset generation cockpit for dedicated terminal panes
+
+# Hide cursor
+tput civis
+trap 'tput cnorm; exit' INT TERM EXIT
+
+clear
+
+while true; do
+    # Run the interactive asset generation wizard
+    vibe-asset
+    
+    echo -e "\n\e[0;32m==========================================================\e[0m"
+    echo -e "\e[0;32m  Press [Enter] to generate another asset, or Ctrl+C...   \e[0m"
+    echo -e "\e[0;32m==========================================================\e[0m"
+    
+    # Restore cursor temporarily for read input
+    tput cnorm
+    read -r
+    tput civis
+    clear
+done

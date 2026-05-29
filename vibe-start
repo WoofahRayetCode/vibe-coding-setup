@@ -126,8 +126,8 @@ tmux new-session -d -s vibe-coding -n 'Vibe Workspace' "$aider_cmd"
 # Split the workspace horizontally and run 'vibe-hud' in the right pane (35% width)
 tmux split-window -h -p 35 -t vibe-coding "$HOME/.local/bin/vibe-hud"
 
-# Split the left pane vertically to run 'vibe-asset-monitor' in the bottom-left pane
-tmux split-window -v -p 30 -t vibe-coding:0.0 "$HOME/.local/bin/vibe-asset-monitor"
+# Split the left pane vertically to run 'vibe-asset-menu' in the bottom-left pane
+tmux split-window -v -p 30 -t vibe-coding:0.0 "$HOME/.local/bin/vibe-asset-menu"
 
 # Split the right pane vertically to run the cycling 'vibe-commands' cheatsheet in the bottom-right pane
 tmux split-window -v -p 30 -t vibe-coding:0.1 "$HOME/.local/bin/vibe-commands"
