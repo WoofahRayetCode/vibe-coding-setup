@@ -114,6 +114,7 @@ install_bin "vibe-asset-monitor"
 install_bin "vibe-start"
 install_bin "vibe-translate"
 install_bin "vibe-commands"
+install_bin "vibe-switch"
 
 # 5. Global Config & Shell integration
 echo -e "\n${BLUE}[5/8] Copying Aider Configurations & Integrations...${NC}"
