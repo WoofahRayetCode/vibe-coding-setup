@@ -1,0 +1,45 @@
+#!/bin/bash
+# vibe-switch - Dynamically switch the current Vibe workspace to a new model and prompt profile
+
+# Check if we are inside the active tmux session, or if one is running
+active_dir=""
+if [ -n "$TMUX" ]; then
+    # Capture the working directory of the main coding pane (pane 0.0) inside vibe-coding
+    active_dir=$(tmux display-message -p -F "#{pane_current_path}" -t vibe-coding:0.0 2>/dev/null)
+fi
+
+# Fallback to the current directory if we aren't in a tmux session or couldn't capture the path
+if [ -z "$active_dir" ]; then
+    active_dir=$(pwd)
+fi
+
+# Parse arguments
+mode="qwen"
+profile=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        deepseek|translate|qwen|uncensored)
+            mode="$1"
+            shift
+            ;;
+        gamedev|general)
+            profile="$1"
+            shift
+            ;;
+        *)
+            echo -e "\e[0;31mError: Invalid parameter '$1'\e[0m"
+            echo -e "Usage: vibe-switch [qwen|deepseek|translate|uncensored] [gamedev|general]"
+            exit 1
+            ;;
+    esac
+done
+
+echo -e "\e[0;32m[VIBE-SWITCH] Switching workspace to new configuration...\e[0m"
+echo -e "  - Target Workspace: \e[1;36m$active_dir\e[0m"
+echo -e "  - Model Mode:       \e[1;36m$mode\e[0m"
+echo -e "  - Prompt Profile:   \e[1;36m$profile\e[0m"
+echo -e ""
+
+# Invoke vibe-start which handles graceful termination, VRAM clearing, prompt syncing, and panel re-splits
+vibe-start "$active_dir" "$mode" "$profile"
