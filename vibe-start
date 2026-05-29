@@ -104,15 +104,15 @@ fi
 case "$mode" in
     deepseek)
         echo -e "\e[0;32mStarting Vibe Workspace with DeepSeek Coder V2 16B (General Coding)...\e[0m"
-        aider_cmd="aider --model ollama_chat/deepseek-coder-v2:16b-tweaked --no-architect"
+        aider_cmd="aider --model ollama_chat/deepseek-coder-v2:16b-tweaked --edit-format diff"
         ;;
     translate)
         echo -e "\e[0;32mStarting Vibe Workspace with DeepSeek Coder V2 16B (Code Translation Profile)...\e[0m"
-        aider_cmd="aider --model ollama_chat/deepseek-coder-v2:16b-translate --no-architect"
+        aider_cmd="aider --model ollama_chat/deepseek-coder-v2:16b-translate --edit-format diff"
         ;;
     uncensored)
         echo -e "\e[0;32mStarting Uncensored Vibe Workspace with Dolphin Llama 3 8B (Unrestricted Profile)...\e[0m"
-        aider_cmd="aider --model ollama_chat/dolphin-llama3:8b-tweaked --no-architect"
+        aider_cmd="aider --model ollama_chat/dolphin-llama3:8b-tweaked --edit-format diff"
         ;;
     *)
         echo -e "\e[0;32mStarting Vibe Workspace with default Qwen 30B/7B Dual-Model (Architect Mode)...\e[0m"
