@@ -97,6 +97,21 @@ while true; do
         else
             bar_empty=""
         fi
+
+        # Create GPU Load Progress Bar
+        gpu_load_filled=$(( gpu_load * bar_width / 100 ))
+        gpu_load_empty=$(( bar_width - gpu_load_filled ))
+
+        if [ "$gpu_load_filled" -gt 0 ]; then
+            gpu_load_bar_filled=$(printf -- '█%.0s' $(seq 1 $gpu_load_filled))
+        else
+            gpu_load_bar_filled=""
+        fi
+        if [ "$gpu_load_empty" -gt 0 ]; then
+            gpu_load_bar_empty=$(printf -- '░%.0s' $(seq 1 $gpu_load_empty))
+        else
+            gpu_load_bar_empty=""
+        fi
     else
         gpu_used_gb="N/A"
         gpu_total_gb="N/A"
@@ -105,6 +120,8 @@ while true; do
         gpu_temp="N/A"
         bar_filled=""
         bar_empty="░░░░░░░░░░░░"
+        gpu_load_bar_filled=""
+        gpu_load_bar_empty="░░░░░░░░░░░░"
     fi
 
     # B. Pure Bash CPU Utilization Calculator (reads ticks since last 0.2s loop)
@@ -157,7 +174,7 @@ while true; do
 
     echo -e "  ${CYAN}[ HARDWARE STATUS ]${NC}${EL}"
     echo -e "  VRAM Usage:   [${GREEN}${bar_filled}${GRAY}${bar_empty}${NC}] ${gpu_used_gb} GB / ${gpu_total_gb} GB (${gpu_pct}%)${EL}"
-    echo -e "  GPU Load/Temp: ${YELLOW}${gpu_load}% Load${NC} | ${YELLOW}${gpu_temp}C${NC}${EL}"
+    echo -e "  GPU Load/Temp: [${GREEN}${gpu_load_bar_filled}${GRAY}${gpu_load_bar_empty}${NC}] ${YELLOW}${gpu_load}% Load${NC} | ${YELLOW}${gpu_temp}C${NC}${EL}"
     echo -e "  CPU Usage:    [${GREEN}${cpu_bar_filled}${GRAY}${cpu_bar_empty}${NC}] ${cpu_usage}% Load | ${YELLOW}${cpu_temp_str}${NC}${EL}"
     echo -e "  System RAM:    $ram_info${EL}"
     echo -e "${GRAY}$divider${NC}${EL}"
