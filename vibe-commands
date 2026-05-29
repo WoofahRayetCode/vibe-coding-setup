@@ -1,0 +1,83 @@
+#!/bin/bash
+# vibe-commands - Dynamic auto-cycling cheatsheet designed for compact terminal panes
+
+# Colors for terminal output
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+GRAY='\033[0;90m'
+CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
+NC='\033[0m' # No Color
+EL='\033[K'  # Clear to end of line
+
+# Clear screen initially
+clear
+
+# Hide cursor
+tput civis
+
+page=0
+
+# Restore cursor on exit
+trap 'tput cnorm; exit' INT TERM EXIT
+
+# Trap window resize signals to force a redraw
+trap 'clear' WINCH
+
+draw_page() {
+    cols=$(tput cols)
+    
+    tput cup 0 0
+    
+    case $page in
+        0)
+            echo -e "${CYAN}═══ VIBE CUSTOM COMMANDS [1/3] ═══${NC}${EL}"
+            echo -e "  ${GREEN}vibe-start [dir]${NC}        Start Tmux coding session${EL}"
+            echo -e "  ${GREEN}vibe-asset <prompt>${NC}     Generate ComfyUI assets${EL}"
+            echo -e "    ${CYAN}--flux${NC}                Use premium Flux 2 GGUF${EL}"
+            echo -e "    ${CYAN}--width / --height${NC}   Custom canvas dimension${EL}"
+            echo -e "  ${GREEN}vibe-check${NC}              Auto build/test project${EL}"
+            echo -e "  ${GREEN}vibe-hud${NC}                Live system telemetry monitor${EL}"
+            echo -e "  ${GREEN}vibe-asset-monitor${NC}      Workspace new asset tracker${EL}"
+            ;;
+        1)
+            echo -e "${YELLOW}═══ AIDER CO-PILOT COMMANDS [2/3] ═══${NC}${EL}"
+            echo -e "  ${CYAN}/add <file>${NC}             Add file to LLM coding context${EL}"
+            echo -e "  ${CYAN}/drop <file>${NC}            Drop file from LLM context${EL}"
+            echo -e "  ${CYAN}/ask <query>${NC}            Ask codebase questions (no writes)${EL}"
+            echo -e "  ${CYAN}/undo${NC}                   Revert last commit made by Aider${EL}"
+            echo -e "  ${CYAN}/diff${NC}                   Show git diff of session changes${EL}"
+            echo -e "  ${CYAN}/commit${NC}                 Manually commit changes to git${EL}"
+            echo -e "  ${CYAN}/web <url>${NC}              Fetch and add web page to context${EL}"
+            echo -e "  ${CYAN}/tokens${NC}                 Show token count and cost usage${EL}"
+            echo -e "  ${CYAN}/exit${NC}                   Close Aider terminal pane${EL}"
+            ;;
+        2)
+            echo -e "${MAGENTA}═══ TMUX WORKSPACE HOTKEYS [3/3] ═══${NC}${EL}"
+            echo -e "  ${CYAN}Ctrl+b [arrow]${NC}          Navigate between split panes${EL}"
+            echo -e "  ${CYAN}Ctrl+b z${NC}                Toggle fullscreen active pane${EL}"
+            echo -e "  ${CYAN}Ctrl+b [${NC}                Enable scroll mode (press 'q' to exit)${EL}"
+            echo -e "  ${CYAN}Ctrl+b d${NC}                Detach from session cleanly${EL}"
+            echo -e "  ${CYAN}Ctrl+b \"${NC}                Split pane horizontally${EL}"
+            echo -e "  ${CYAN}Ctrl+b %${NC}                Split pane vertically${EL}"
+            echo -e "  ${CYAN}Ctrl+b x${NC}                Kill active split pane${EL}"
+            ;;
+    esac
+    
+    # Track the height to clear remaining lines in smaller splits to prevent ghosting
+    lines_printed=9
+    [ $page -eq 0 ] && lines_printed=8
+    [ $page -eq 2 ] && lines_printed=8
+    
+    current_lines=$(tput lines)
+    for ((i=lines_printed; i<current_lines; i++)); do
+        echo -e "${EL}"
+    done
+}
+
+while true; do
+    draw_page
+    sleep 5
+    page=$(( (page + 1) % 3 ))
+done
