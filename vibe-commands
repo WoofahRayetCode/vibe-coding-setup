@@ -34,10 +34,10 @@ draw_page() {
     
     tput cup 0 0
     
-    case $page in
         0)
             echo -e "${CYAN}═══ VIBE CUSTOM COMMANDS [1/3] ═══${NC}${EL}"
-            echo -e "  ${GREEN}vibe-start [dir]${NC}        Start Tmux coding session${EL}"
+            echo -e "  ${GREEN}vibe-start [dir] [prof]${NC} Start Tmux coding session${EL}"
+            echo -e "    ${CYAN}Profiles:${NC} qwen (default), deepseek, translate${EL}"
             echo -e "  ${GREEN}vibe-asset <prompt>${NC}     Generate ComfyUI assets${EL}"
             echo -e "    ${CYAN}--flux${NC}                Use premium Flux 2 GGUF${EL}"
             echo -e "    ${CYAN}--width / --height${NC}   Custom canvas dimension${EL}"

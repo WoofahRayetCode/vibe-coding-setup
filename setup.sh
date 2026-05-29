@@ -39,6 +39,16 @@ if [ ! -f "Modelfile-editor" ]; then
     exit 1
 fi
 
+if [ ! -f "Modelfile-deepseek-general" ]; then
+    echo -e "${RED}Error: Modelfile-deepseek-general not found in current folder!${NC}"
+    exit 1
+fi
+
+if [ ! -f "Modelfile-deepseek-translate" ]; then
+    echo -e "${RED}Error: Modelfile-deepseek-translate not found in current folder!${NC}"
+    exit 1
+fi
+
 echo -e "${YELLOW}Building qwen3-coder:30b-tweaked (Architect)...${NC}"
 if ollama create qwen3-coder:30b-tweaked -f Modelfile-architect; then
     echo -e "${GREEN}✔ qwen3-coder:30b-tweaked built successfully.${NC}"
@@ -51,6 +61,26 @@ if ollama create qwen2.5-coder:7b-tweaked -f Modelfile-editor; then
     echo -e "${GREEN}✔ qwen2.5-coder:7b-tweaked built successfully.${NC}"
 else
     echo -e "${RED}Failed to build qwen2.5-coder:7b-tweaked. Make sure you pulled 'qwen2.5-coder:7b' first.${NC}"
+fi
+
+echo -e "${YELLOW}Ensuring DeepSeek Coder V2 16B is pulled...${NC}"
+if ! ollama list | grep -q "deepseek-coder-v2:16b"; then
+    echo -e "${YELLOW}Pulling deepseek-coder-v2:16b...${NC}"
+    ollama pull deepseek-coder-v2:16b
+fi
+
+echo -e "${YELLOW}Building deepseek-coder-v2:16b-tweaked (General Coding)...${NC}"
+if ollama create deepseek-coder-v2:16b-tweaked -f Modelfile-deepseek-general; then
+    echo -e "${GREEN}✔ deepseek-coder-v2:16b-tweaked built successfully.${NC}"
+else
+    echo -e "${RED}Failed to build deepseek-coder-v2:16b-tweaked.${NC}"
+fi
+
+echo -e "${YELLOW}Building deepseek-coder-v2:16b-translate (Code Translation)...${NC}"
+if ollama create deepseek-coder-v2:16b-translate -f Modelfile-deepseek-translate; then
+    echo -e "${GREEN}✔ deepseek-coder-v2:16b-translate built successfully.${NC}"
+else
+    echo -e "${RED}Failed to build deepseek-coder-v2:16b-translate.${NC}"
 fi
 
 # 3. Install vibe-check and vibe-hud scripts

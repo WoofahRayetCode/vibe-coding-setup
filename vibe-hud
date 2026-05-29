@@ -174,6 +174,7 @@ while true; do
     config_file="$HOME/.aider.conf.yml"
     main_model="qwen3-coder:30b-tweaked"
     editor_model="qwen2.5-coder:7b"
+    single_model=""
 
     if [ -f "$config_file" ]; then
         main_model_line=$(grep "^model:" "$config_file" | awk '{print $2}')
@@ -186,37 +187,60 @@ while true; do
         fi
     fi
 
+    # Check if Aider is actually running and scan its arguments
+    if pgrep -f "aider" >/dev/null; then
+        aider_running=1
+        aider_cmd=$(ps aux | grep -v grep | grep -E "aider|python -m aider" | tail -n 1)
+        if [ -n "$aider_cmd" ]; then
+            if echo "$aider_cmd" | grep -q "deepseek-coder-v2:16b-tweaked"; then
+                main_model="deepseek-coder-v2:16b-tweaked"
+                single_model="deepseek-coder-v2:16b-tweaked"
+            elif echo "$aider_cmd" | grep -q "deepseek-coder-v2:16b-translate"; then
+                main_model="deepseek-coder-v2:16b-translate"
+                single_model="deepseek-coder-v2:16b-translate"
+            fi
+        fi
+    else
+        aider_running=0
+    fi
+
     # Determine status of each model in VRAM
     arch_active=0
     edit_active=0
     
-    if echo "$models_output" | grep -q "$main_model"; then
-        arch_active=1
-    fi
-    if echo "$models_output" | grep -q "$editor_model"; then
-        edit_active=1
-    fi
-
-    # Handle fallbacks if a larger family model is currently loading
-    if [ "$arch_active" -eq 0 ] && [ "$edit_active" -eq 0 ] && [ -n "$models_output" ]; then
-        if echo "$models_output" | grep -q -E "30b|next"; then
+    if [ -n "$single_model" ]; then
+        if echo "$models_output" | grep -q "$single_model"; then
             arch_active=1
-        else
+        fi
+    else
+        if echo "$models_output" | grep -q "$main_model"; then
+            arch_active=1
+        fi
+        if echo "$models_output" | grep -q "$editor_model"; then
             edit_active=1
         fi
-    fi
 
-    # Check if Aider is actually running
-    if pgrep -f "aider" >/dev/null; then
-        aider_running=1
-    else
-        aider_running=0
+        # Handle fallbacks if a larger family model is currently loading
+        if [ "$arch_active" -eq 0 ] && [ "$edit_active" -eq 0 ] && [ -n "$models_output" ]; then
+            if echo "$models_output" | grep -q -E "30b|next"; then
+                arch_active=1
+            else
+                edit_active=1
+            fi
+        fi
     fi
 
     # Resolve status tags
     if [ "$aider_running" -eq 0 ]; then
         arch_status="${GRAY}[  IDLE  ]${NC} (Aider stopped)"
         edit_status="${GRAY}[  IDLE  ]${NC} (Aider stopped)"
+    elif [ -n "$single_model" ]; then
+        if [ "$arch_active" -eq 1 ]; then
+            arch_status="${GREEN}[ ACTIVE ]${NC} ◀ Processing..."
+        else
+            arch_status="${YELLOW}[ STANDBY ]${NC} Awaiting input..."
+        fi
+        edit_status="${GRAY}[  N/A   ]${NC} (Single Model Mode)"
     elif [ "$arch_active" -eq 1 ] && [ "$edit_active" -eq 1 ]; then
         arch_status="${BLUE}[ ACTIVE ]${NC}"
         edit_status="${GREEN}[ ACTIVE ]${NC}"
@@ -231,11 +255,19 @@ while true; do
         edit_status="${GRAY}[  IDLE  ]${NC}"
     fi
 
-    echo -e "  ${CYAN}[ OLLAMA DUAL-MODEL STATUS ]${NC}"
-    echo -e "  MAIN ROLE     MODEL NAME                      STATUS / VRAM STATE"
-    echo -e "  ---------     ----------                      -------------------"
-    echo -e "  Architect     $(printf '%-30s' "$main_model")  $arch_status${EL}"
-    echo -e "  Editor        $(printf '%-30s' "$editor_model")  $edit_status${EL}"
+    if [ -n "$single_model" ]; then
+        echo -e "  ${CYAN}[ OLLAMA SINGLE-MODEL STATUS ]${NC}"
+        echo -e "  ROLE          MODEL NAME                      STATUS / VRAM STATE"
+        echo -e "  ----          ----------                      -------------------"
+        echo -e "  Translator    $(printf '%-30s' "$main_model")  $arch_status${EL}"
+        echo -e "  Editor        $(printf '%-30s' "N/A")  $edit_status${EL}"
+    else
+        echo -e "  ${CYAN}[ OLLAMA DUAL-MODEL STATUS ]${NC}"
+        echo -e "  MAIN ROLE     MODEL NAME                      STATUS / VRAM STATE"
+        echo -e "  ---------     ----------                      -------------------"
+        echo -e "  Architect     $(printf '%-30s' "$main_model")  $arch_status${EL}"
+        echo -e "  Editor        $(printf '%-30s' "$editor_model")  $edit_status${EL}"
+    fi
     echo ""
     echo -e "${CYAN}$border${NC}"
     echo -e "  Press [Ctrl+C] to exit HUD.                       "

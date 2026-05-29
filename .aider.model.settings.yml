@@ -11,6 +11,14 @@
   edit_format: diff
   use_repo_map: true
 
+- name: ollama_chat/deepseek-coder-v2:16b-tweaked
+  edit_format: diff
+  use_repo_map: true
+
+- name: ollama_chat/deepseek-coder-v2:16b-translate
+  edit_format: diff
+  use_repo_map: true
+
 - name: ollama_chat/qwen2.5-coder:7b
   edit_format: whole
   use_repo_map: true
