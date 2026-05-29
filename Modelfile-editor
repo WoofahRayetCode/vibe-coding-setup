@@ -6,11 +6,12 @@ FROM qwen2.5-coder:7b
 # Sampling tweaks for high-speed, deterministic, precise code editing
 PARAMETER temperature 0.0
 PARAMETER top_p 0.9
-PARAMETER num_ctx 16384
+PARAMETER num_ctx 8192
 PARAMETER num_predict 8192
 
 # GPU offload optimization forcing 100% RTX 5060 VRAM allocation
-PARAMETER num_gpu 99
+# CHANGELOG: Removed num_gpu 99 to allow Ollama to automatically manage VRAM safely
+# PARAMETER num_gpu 99
 
 # System prompt optimized for local Editor role
 SYSTEM """You are an exceptionally fast and precise local Editor model. Your sole responsibility is to implement the code modifications planned by the Architect.
