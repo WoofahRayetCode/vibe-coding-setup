@@ -116,7 +116,7 @@ This environment is optimized and actively running on a high-performance laptop 
 | **qwen2.5-coder:7b-tweaked** (Editor) | ~4.7 GB | **100% GPU VRAM** | Lightning-fast code generation and diff application. Executes in under a few seconds. |
 | **dolphin-llama3:8b-tweaked** (Uncensored) | ~4.7 GB | **100% GPU VRAM** | Completely unrestricted general coding and reasoning. Highly optimized for snappiness on RTX 5060. |
 | **deepseek-coder-v2:16b-translate** (Translator) | ~8.9 GB | **Hybrid (VRAM/RAM)** | Specialized multi-lingual software translation. Excellent API alignment and comments mapping. |
-| **qwen3-coder:30b-tweaked** (Architect) | ~18 GB | **Hybrid GPU + CPU RAM** | Highly intelligent conceptual plans and C# structure designs, utilizing CPU system memory and GPU offloading seamlessly. |
+| **qwen3-coder:30b-tweaked** (Architect) | ~18 GB | **Hybrid GPU + CPU RAM** | Highly intelligent conceptual plans, complex algorithms, and advanced multi-language software architecture designs. |
 
 ---
 
