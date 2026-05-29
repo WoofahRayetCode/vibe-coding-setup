@@ -179,6 +179,24 @@ while true; do
 
     # C. Fetch System RAM usage
     ram_info=$(free -m | awk '/Mem:/ {printf "%.1f GB / %.1f GB (%.0f%%)\n", $3/1024, $2/1024, $3/$2*100}')
+    ram_pct=$(free | awk '/Mem:/ {print int($3/$2 * 100)}')
+    if [ -z "$ram_pct" ]; then ram_pct=0; fi
+
+    # Create System RAM Progress Bar
+    ram_bar_width=12
+    ram_filled=$(( ram_pct * ram_bar_width / 100 ))
+    ram_empty=$(( ram_bar_width - ram_filled ))
+
+    if [ "$ram_filled" -gt 0 ]; then
+        ram_bar_filled=$(printf -- '█%.0s' $(seq 1 $ram_filled))
+    else
+        ram_bar_filled=""
+    fi
+    if [ "$ram_empty" -gt 0 ]; then
+        ram_bar_empty=$(printf -- '░%.0s' $(seq 1 $ram_empty))
+    else
+        ram_bar_empty=""
+    fi
 
     # D. Pure Bash Disk I/O Speed Calculator
     current_read_sectors=0
@@ -299,7 +317,7 @@ while true; do
     echo -e "  VRAM Usage:   [${GREEN}${bar_filled}${GRAY}${bar_empty}${NC}] ${gpu_used_gb} GB / ${gpu_total_gb} GB (${gpu_pct}%)${EL}"
     echo -e "  GPU Load/Temp: [${GREEN}${gpu_load_bar_filled}${GRAY}${gpu_load_bar_empty}${NC}] ${YELLOW}${gpu_load}% Load${NC} | ${YELLOW}${gpu_temp}C${NC}${EL}"
     echo -e "  CPU Usage:    [${GREEN}${cpu_bar_filled}${GRAY}${cpu_bar_empty}${NC}] ${cpu_usage}% Load | ${YELLOW}${cpu_temp_str}${NC}${EL}"
-    echo -e "  System RAM:    $ram_info${EL}"
+    echo -e "  System RAM:    [${GREEN}${ram_bar_filled}${GRAY}${ram_bar_empty}${NC}] $ram_info${EL}"
     echo -e "  Disk I/O:      [${GREEN}${disk_bar_filled}${GRAY}${disk_bar_empty}${NC}] ${disk_info}${EL}"
     echo -e "  Network:       [${GREEN}${net_bar_filled}${GRAY}${net_bar_empty}${NC}] ${net_info}${EL}"
     echo -e "${GRAY}$divider${NC}${EL}"
