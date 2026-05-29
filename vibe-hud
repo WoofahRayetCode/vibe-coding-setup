@@ -25,29 +25,25 @@ prev_total=0
 # Restore cursor on exit
 trap 'tput cnorm; exit' INT TERM EXIT
 
-# Trap window resize signals to force a header redraw
-trap 'clear; header_drawn=0' WINCH
+# Trap window resize signals to force a clear
+trap 'clear' WINCH
 
-draw_static_header() {
+draw_header() {
     cols=$(tput cols)
     border=$(printf -- '=%.0s' $(seq 1 $cols))
-    
-    tput cup 0 0
-    echo -e "${CYAN}$border${NC}"
-    echo -e "${CYAN} __     ___ _            _   _ _   _ ____   ${NC}"
-    echo -e "${CYAN} \\ \\   / (_) |__   ___  | | | | | | |  _ \\  ${NC}"
-    echo -e "${CYAN}  \\ \\ / /| | '_ \\ / _ \\ | |_| | | | | | | | ${NC}"
-    echo -e "${CYAN}   \\ V / | | |_) |  __/ |  _  | |_| | |_| | ${NC}"
-    echo -e "${CYAN}    \\_/  |_|_.__/ \\___| |_| |_|\\___/|____/  ${NC}"
-    echo -e "${CYAN}$border${NC}"
-    header_drawn=1
+    echo -e "${CYAN}$border${NC}${EL}"
+    echo -e "${CYAN} __     ___ _            _   _ _   _ ____   ${NC}${EL}"
+    echo -e "${CYAN} \\ \\   / (_) |__   ___  | | | | | | |  _ \\  ${NC}${EL}"
+    echo -e "${CYAN}  \\ \\ / /| | '_ \\ / _ \\ | |_| | | | | | | | ${NC}${EL}"
+    echo -e "${CYAN}   \\ V / | | |_) |  __/ |  _  | |_| | |_| | ${NC}${EL}"
+    echo -e "${CYAN}    \\_/  |_|_.__/ \\___| |_| |_|\\___/|____/  ${NC}${EL}"
+    echo -e "${CYAN}$border${NC}${EL}"
 }
 
 while true; do
-    # 1. Draw static header only if not already drawn (or resized)
-    if [ "$header_drawn" -eq 0 ]; then
-        draw_static_header
-    fi
+    # 1. Reset cursor to top-left to redraw cleanly without scrolling
+    tput cup 0 0
+    draw_header
 
     # Fetch terminal dimensions
     cols=$(tput cols)
@@ -58,15 +54,12 @@ while true; do
     # Fetch active models
     models_output=$(ollama ps 2>/dev/null | tail -n +2)
 
-    # 2. Move cursor directly to Line 9 (0-indexed line 8) below the ASCII art
-    tput cup 8 0
-
-    # 3. Print Dynamic Info (Time & Shell)
+    # 2. Print Dynamic Info (Time & Shell)
     current_time=$(date +"%Y-%m-%d %H:%M:%S")
     echo -e "  ${CYAN}[ SYSTEM TIME ]${NC}  $current_time${EL}"
     echo -e "  ${CYAN}[ HOST SHELL  ]${NC}  $SHELL${EL}"
-    echo -e "${GRAY}$divider${NC}"
-    echo ""
+    echo -e "${GRAY}$divider${NC}${EL}"
+    echo -e "${EL}"
 
     # 4. Fetch and Print Live Hardware Telemetry
     # A. NVIDIA GPU & VRAM Status
@@ -161,13 +154,13 @@ while true; do
     # C. Fetch System RAM usage
     ram_info=$(free -m | awk '/Mem:/ {printf "%.1f GB / %.1f GB (%.0f%%)\n", $3/1024, $2/1024, $3/$2*100}')
 
-    echo -e "  ${CYAN}[ HARDWARE STATUS ]${NC}"
+    echo -e "  ${CYAN}[ HARDWARE STATUS ]${NC}${EL}"
     echo -e "  VRAM Usage:   [${GREEN}${bar_filled}${GRAY}${bar_empty}${NC}] ${gpu_used_gb} GB / ${gpu_total_gb} GB (${gpu_pct}%)${EL}"
     echo -e "  GPU Load/Temp: ${YELLOW}${gpu_load}% Load${NC} | ${YELLOW}${gpu_temp}C${NC}${EL}"
     echo -e "  CPU Usage:    [${GREEN}${cpu_bar_filled}${GRAY}${cpu_bar_empty}${NC}] ${cpu_usage}% Load | ${YELLOW}${cpu_temp_str}${NC}${EL}"
     echo -e "  System RAM:    $ram_info${EL}"
-    echo -e "${GRAY}$divider${NC}"
-    echo ""
+    echo -e "${GRAY}$divider${NC}${EL}"
+    echo -e "${EL}"
 
     # 5. Dynamic Aider Triple-Model Status Card
     arch_model="qwen3-coder:30b-tweaked"
@@ -277,15 +270,15 @@ while true; do
         if [ "$trans_active" -eq 1 ]; then trans_status="${GREEN}[  READY  ]${NC} (Aider stopped)"; fi
     fi
 
-    echo -e "  ${CYAN}[ OLLAMA TRIPLE-MODEL STATUS ]${NC}"
-    echo -e "  ROLE          MODEL NAME                      STATUS / VRAM STATE"
-    echo -e "  ----          ----------                      -------------------"
+    echo -e "  ${CYAN}[ OLLAMA TRIPLE-MODEL STATUS ]${NC}${EL}"
+    echo -e "  ROLE          MODEL NAME                      STATUS / VRAM STATE${EL}"
+    echo -e "  ----          ----------                      -------------------${EL}"
     echo -e "  Architect     $(printf '%-30s' "$arch_model")  $arch_status${EL}"
     echo -e "  Editor        $(printf '%-30s' "$edit_model")  $edit_status${EL}"
     echo -e "  Translator    $(printf '%-30s' "$trans_model")  $trans_status${EL}"
-    echo ""
-    echo -e "${CYAN}$border${NC}"
-    echo -e "  Press [Ctrl+C] to exit HUD.                       "
+    echo -e "${EL}"
+    echo -e "${CYAN}$border${NC}${EL}"
+    echo -e "  Press [Ctrl+C] to exit HUD.                       ${EL}"
     
     # Silently clear the rest of the screen below the HUD
     tput ed
