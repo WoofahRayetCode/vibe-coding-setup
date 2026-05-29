@@ -137,6 +137,8 @@ Here are the key configuration files and utilities provided in this repository:
 | [`vibe-translate`](vibe-translate) | Executable | One-shot code translator script mapping source files directly to target languages. |
 | [`vibe-hud`](vibe-hud) | Executable | The terminal-based telemetry and active Ollama triple-model cockpit dashboard. |
 | [`vibe-asset`](vibe-asset) | CLI Tool | Programmatic Stable Diffusion sprite generator connecting directly to local ComfyUI. |
+| [`vibe-asset-menu`](vibe-asset-menu) | Executable | Looping, interactive menu prompt wrapper for headless asset generation splits. |
+| [`vibe-asset-monitor`](vibe-asset-monitor) | Executable | Real-time asset generation telemetry and ComfyUI background server dashboard. |
 | [`vibe-free`](vibe-free) | Executable | Utility script to stop active Ollama instances and flush ComfyUI cache to free VRAM. |
 | [`vibe-start`](vibe-start) | Executable | Terminal workspace launcher managing Tmux panes, model selections, and prompt profile loads. |
 | [`vibe-switch`](vibe-switch) | Executable | Active session switcher. Gracefully hot-swaps active workspaces to new model/prompt profiles in a single command. |
