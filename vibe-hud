@@ -30,9 +30,15 @@ prev_write_sectors=0
 prev_rx_bytes=0
 prev_tx_bytes=0
 
-# Variables for scrolling News Ticker (Godot & GameMaker Bleeding-Edge updates)
-ticker_text=" [GODOT MASTER] Typed Dictionaries are now natively compiled for 3x faster iterations.  |  [QWEN 30B] Architect model optimized with 16K context windows for complex systems planning.  |  [PYTHON MASTER] Experimental Free-Threaded build (PEP 703) enables true GIL-free multicore parallel execution.  |  [QWEN 7B] Editor model locked at Temperature 0 for rapid, deterministic diff modifications.  |  [GAMEMAKER BETA] Dynamic Audio Effect bus routing and persistent GML structs optimized.  |  [DEEPSEEK 16B] Specialized translator profile handles cross-language APIs with full comments preservation.  |  [PYTHON MASTER] Experimental Tier 2 JIT compiler (PEP 744) enabled dynamically for 15% faster hot loops.  |  [DOLPHIN 8B] Uncensored model locks all 33 layers into VRAM for boundary-free programming.  |  [GODOT MASTER] RenderingDevice GL Compatibility pipeline optimized for laptop GPUs.  |  [PYTHON MASTER] Brand new colorized interactive REPL featuring multi-line editing now active.  |  [GAMEMAKER BETA] New vector particle shapes and physics bindings added. "
-ticker_idx=0
+# Variables for scrolling News Tickers (Engines, Languages, and LLM Models)
+ticker_engines=" [GODOT MASTER] Typed Dictionaries are now natively compiled for 3x faster iterations.  |  [GAMEMAKER BETA] Dynamic Audio Effect bus routing and persistent GML structs optimized.  |  [GODOT MASTER] RenderingDevice GL Compatibility pipeline optimized for laptop GPUs.  |  [GAMEMAKER BETA] New vector particle shapes and physics bindings added. "
+idx_engines=0
+
+ticker_languages=" [PYTHON MASTER] Experimental Free-Threaded build (PEP 703) enables true GIL-free multicore parallel execution.  |  [PYTHON MASTER] Experimental Tier 2 JIT compiler (PEP 744) enabled dynamically for 15% faster hot loops.  |  [PYTHON MASTER] Brand new colorized interactive REPL featuring multi-line editing now active. "
+idx_languages=0
+
+ticker_models=" [QWEN 30B] Architect model optimized with 16K context windows for complex systems planning.  |  [QWEN 7B] Editor model locked at Temperature 0 for rapid, deterministic diff modifications.  |  [DEEPSEEK 16B] Specialized translator profile handles cross-language APIs with full comments preservation.  |  [DOLPHIN 8B] Uncensored model locks all 33 layers into VRAM for boundary-free programming. "
+idx_models=0
 
 # Frames for thinking ASCII question mark animation (4 frames, 4 lines each)
 q_frame0_0="   .---. "
@@ -578,17 +584,32 @@ while true; do
     echo -e "  $(printf '%-13s' "$trans_role")$(printf '%-30s' "$trans_model")  $trans_status${EL}"
     echo -e "${EL}"
 
-    # Scrolling Ticker Logic
+    # Scrolling Tickers Logic (Engines, Languages, and LLM Models)
     cols=$(tput cols)
-    ticker_w=$(( cols - 24 )) # 24 chars for "  « NEWS TICKER »  "
+    ticker_w=$(( cols - 22 )) # 22 chars for labels padding
     if [ "$ticker_w" -lt 10 ]; then ticker_w=10; fi
 
-    extended_text="${ticker_text}${ticker_text}"
-    text_len=${#ticker_text}
-    ticker_slice="${extended_text:$ticker_idx:$ticker_w}"
-    ticker_idx=$(( (ticker_idx + 1) % text_len ))
+    # Ticker 1: Engines (Godot & GameMaker)
+    extended_engines="${ticker_engines}${ticker_engines}"
+    len_engines=${#ticker_engines}
+    slice_engines="${extended_engines:$idx_engines:$ticker_w}"
+    idx_engines=$(( (idx_engines + 1) % len_engines ))
 
-    echo -e "  ${MAGENTA}« NEWS TICKER »${NC}  ${YELLOW}${ticker_slice}${NC}${EL}"
+    # Ticker 2: Languages (Python)
+    extended_languages="${ticker_languages}${ticker_languages}"
+    len_languages=${#ticker_languages}
+    slice_languages="${extended_languages:$idx_languages:$ticker_w}"
+    idx_languages=$(( (idx_languages + 1) % len_languages ))
+
+    # Ticker 3: Models (LLMs)
+    extended_models="${ticker_models}${ticker_models}"
+    len_models=${#ticker_models}
+    slice_models="${extended_models:$idx_models:$ticker_w}"
+    idx_models=$(( (idx_models + 1) % len_models ))
+
+    echo -e "  ${CYAN}« ENGINES NEWS »${NC}  ${YELLOW}${slice_engines}${NC}${EL}"
+    echo -e "  ${GREEN}« LANGS  NEWS »${NC}  ${YELLOW}${slice_languages}${NC}${EL}"
+    echo -e "  ${MAGENTA}« MODELS NEWS »${NC}  ${YELLOW}${slice_models}${NC}${EL}"
     echo -e "${EL}"
     echo -e "${CYAN}$border${NC}${EL}"
     echo -e "  Press [Ctrl+C] to exit HUD.                       ${EL}"
