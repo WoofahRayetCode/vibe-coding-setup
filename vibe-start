@@ -15,6 +15,7 @@ fi
 # Parse arguments dynamically
 target_dir=""
 mode="default"
+profile=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -22,12 +23,16 @@ while [[ $# -gt 0 ]]; do
             mode="$1"
             shift
             ;;
+        gamedev|general)
+            profile="$1"
+            shift
+            ;;
         *)
             if [ -d "$1" ]; then
                 target_dir="$1"
             else
-                echo -e "\e[0;31mError: Directory or profile '$1' is invalid!\e[0m"
-                echo -e "Usage: vibe-start [dir] [qwen|deepseek|translate|uncensored]"
+                echo -e "\e[0;31mError: Directory, mode, or profile '$1' is invalid!\e[0m"
+                echo -e "Usage: vibe-start [dir] [qwen|deepseek|translate|uncensored] [gamedev|general]"
                 exit 1
             fi
             shift
@@ -76,6 +81,24 @@ fi
 
 # Print active working directory
 echo -e "\e[0;34mActive Workspace Directory: \e[1;36m$(pwd)\e[0m"
+
+# Setup instruction profiles if specified
+if [ "$profile" = "gamedev" ]; then
+    echo -e "\e[0;32m[VIBE] Loading Game Developer custom instructions (Godot & GameMaker)...\e[0m"
+    cp "$HOME/Documents/GitHub/vibe-coding-setup/prompts/game-dev.instructions.md" "./.aider.instructions.md"
+elif [ "$profile" = "general" ]; then
+    echo -e "\e[0;32m[VIBE] Loading Professional Software Engineer custom instructions...\e[0m"
+    cp "$HOME/Documents/GitHub/vibe-coding-setup/prompts/general-dev.instructions.md" "./.aider.instructions.md"
+else
+    # Clean up only if the existing file matches one of our templates to preserve user custom instructions
+    if [ -f "./.aider.instructions.md" ]; then
+        if diff -q "./.aider.instructions.md" "$HOME/Documents/GitHub/vibe-coding-setup/prompts/game-dev.instructions.md" &>/dev/null || \
+           diff -q "./.aider.instructions.md" "$HOME/Documents/GitHub/vibe-coding-setup/prompts/general-dev.instructions.md" &>/dev/null; then
+            echo -e "\e[0;33m[VIBE] Cleaning up previous profile instructions...\e[0m"
+            rm -f "./.aider.instructions.md"
+        fi
+    fi
+fi
 
 # Determine Aider command based on mode
 case "$mode" in
