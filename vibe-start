@@ -56,6 +56,12 @@ if git rev-parse --is-inside-work-tree &>/dev/null; then
     fi
 fi
 
+# Auto-stage untracked or renamed files so Aider's RepoMap is always 100% complete
+if git rev-parse --is-inside-work-tree &>/dev/null; then
+    echo -e "\e[0;32m[VIBE] Staging untracked & renamed files to Git for RepoMap consistency...\e[0m"
+    git add .
+fi
+
 # Check if session already exists, and kill it to ensure a fresh start
 if tmux has-session -t vibe-coding 2>/dev/null; then
     echo -e "\e[0;33mClosing existing 'vibe-coding' session...\e[0m"
