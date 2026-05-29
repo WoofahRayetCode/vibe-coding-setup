@@ -6,171 +6,296 @@ import urllib.parse
 import time
 import random
 import os
+import argparse
 
 # Config
 COMFYUI_URL = "http://127.0.0.1:8188"
 DEFAULT_CHECKPOINT = "dreamshaper_8.safetensors"
 DEFAULT_LORA = "PixelArtRedmond15V-PixelArt-PIXARFK.safetensors"
 
-def show_usage():
-    print("vibe-asset - Generate local AI pixel art game assets using ComfyUI")
-    print("Usage: vibe-asset <prompt> [filename_prefix]")
-    print('Example: vibe-asset "red dragon monster sprite" red_dragon')
-    sys.exit(1)
-
-if len(sys.argv) < 2:
-    show_usage()
-
-prompt_text = sys.argv[1]
-file_prefix = sys.argv[2] if len(sys.argv) > 2 else "vibe_asset"
-
-# Sanitize file prefix
-file_prefix = "".join(c for c in file_prefix if c.isalnum() or c in ("_", "-")).rstrip()
-
-# Inject optimized pixel-art prompts
-# Dynamically detect if the user wants a full-frame repeating texture/ground instead of an isolated item sprite
-texture_keywords = ["texture", "ground", "wall", "pattern", "seamless", "tileable", "background", "floor"]
-is_texture = any(kw in prompt_text.lower() for kw in texture_keywords)
-
-if is_texture:
-    # Full-frame texture settings (no backgrounds, no borders, pure tileable pattern)
-    final_positive_prompt = f"{prompt_text}, retro pixel art style, 16-bit, seamless tileable pattern, full frame texture, clean pixels, sharp details"
-    final_negative_prompt = "low quality, blurry, worst quality, 3d render, photorealistic, depth of field, isolated object, border, frame, background, floating item, multiple items, diagrams"
-else:
-    # Standard isolated item/character settings
-    final_positive_prompt = f"{prompt_text}, retro pixel art style, 16-bit sprite, flat solid background, clean pixels, sharp details, isolated game asset"
-    final_negative_prompt = "low quality, blurry, worst quality, 3d render, photorealistic, gradient background, depth of field, shadow cast"
-
-# Standard txt2img ComfyUI Workflow JSON
-workflow = {
-    "4": {
-        "inputs": {
-            "ckpt_name": DEFAULT_CHECKPOINT
-        },
-        "class_type": "CheckpointLoaderSimple"
-    },
-    "10": {
-        "inputs": {
-            "model": ["4", 0],
-            "clip": ["4", 1],
-            "lora_name": DEFAULT_LORA,
-            "strength_model": 1.0,
-            "strength_clip": 1.0
-        },
-        "class_type": "LoraLoader"
-    },
-    "5": {
-        "inputs": {
-            "width": 512,
-            "height": 512,
-            "batch_size": 1
-        },
-        "class_type": "EmptyLatentImage"
-    },
-    "6": {
-        "inputs": {
-            "text": final_positive_prompt,
-            "clip": ["10", 1]
-        },
-        "class_type": "CLIPTextEncode"
-    },
-    "7": {
-        "inputs": {
-            "text": final_negative_prompt,
-            "clip": ["10", 1]
-        },
-        "class_type": "CLIPTextEncode"
-    },
-    "3": {
-        "inputs": {
-            "seed": random.randint(1, 1000000000),
-            "steps": 25,
-            "cfg": 7.5,
-            "sampler_name": "euler_ancestral",
-            "scheduler": "karras",
-            "denoise": 1.0,
-            "model": ["10", 0],
-            "positive": ["6", 0],
-            "negative": ["7", 0],
-            "latent_image": ["5", 0]
-        },
-        "class_type": "KSampler"
-    },
-    "8": {
-        "inputs": {
-            "samples": ["3", 0],
-            "vae": ["4", 2]
-        },
-        "class_type": "VAEDecode"
-    },
-    "9": {
-        "inputs": {
-            "filename_prefix": file_prefix,
-            "images": ["8", 0]
-        },
-        "class_type": "SaveImage"
-    }
-}
-
-print(f"🎨 Generating asset: \"{prompt_text}\"")
-print(f"🔌 Connecting to local ComfyUI API at {COMFYUI_URL}...")
-
-# 1. Queue the prompt
-payload = json.dumps({"prompt": workflow}).encode("utf-8")
-req = urllib.request.Request(
-    f"{COMFYUI_URL}/prompt",
-    data=payload,
-    headers={"Content-Type": "application/json"}
-)
-
-try:
-    with urllib.request.urlopen(req) as response:
-        res_data = json.loads(response.read().decode("utf-8"))
-        prompt_id = res_data["prompt_id"]
-        print(f"✔ Job queued successfully! Prompt ID: {prompt_id}")
-except Exception as e:
-    print(f"❌ Error connecting to ComfyUI: {e}")
-    print("Please make sure ComfyUI is running and fully loaded!")
-    sys.exit(1)
-
-# 2. Poll for completion
-print("⏳ Generating pixel art sprite (this takes ~3-5 seconds on your RTX 5060)...")
-finished = False
-filename = None
-
-while not finished:
-    time.sleep(0.5)
+def refresh_comfyui():
+    """Trigger ComfyUI to refresh and discover newly added models/encoders."""
     try:
-        # Check queue history
-        with urllib.request.urlopen(f"{COMFYUI_URL}/history/{prompt_id}") as response:
-            history_data = json.loads(response.read().decode("utf-8"))
-            if prompt_id in history_data:
-                # Job is completed! Get image details
-                outputs = history_data[prompt_id].get("outputs", {})
-                for node_id, output in outputs.items():
-                    if "images" in output:
-                        img_info = output["images"][0]
-                        filename = img_info["filename"]
-                        subfolder = img_info.get("subfolder", "")
-                finished = True
+        req = urllib.request.Request(f"{COMFYUI_URL}/refresh", method="POST")
+        with urllib.request.urlopen(req) as response:
+            pass
     except Exception:
-        # Loop silently during loading/processing
+        # Ignore refresh failures silently
         pass
 
-if not filename:
-    print("❌ Error: Failed to retrieve generated image info from ComfyUI.")
-    sys.exit(1)
+def main():
+    parser = argparse.ArgumentParser(
+        description="vibe-asset - Generate local AI game assets using ComfyUI",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  vibe-asset "red dragon monster sprite" red_dragon
+  vibe-asset "futuristic sci-fi base tile" sci_fi_tile --width 1024 --height 1024
+  vibe-asset "epic dark fantasy castle" castle --flux
+"""
+    )
+    parser.add_argument("prompt", type=str, help="The prompt to generate the asset from")
+    parser.add_argument("filename_prefix", type=str, nargs="?", default="vibe_asset", help="Filename prefix for the saved asset")
+    parser.add_argument("--flux", action="store_true", help="Use high-fidelity Flux 2 (flux-2-klein-4b-Q8_0.gguf) model instead of standard SD 1.5")
+    parser.add_argument("--width", type=int, help="Width of the generated image (default: 512 for SD 1.5, 1024 for Flux)")
+    parser.add_argument("--height", type=int, help="Height of the generated image (default: 512 for SD 1.5, 1024 for Flux)")
 
-# 3. Retrieve and save the image locally
-image_url = f"{COMFYUI_URL}/view?filename={filename}&subfolder={subfolder}&type=output"
-local_filename = f"{file_prefix}_{int(time.time())}.png"
+    # Parse arguments
+    args = parser.parse_args()
 
-try:
-    print("📥 Downloading generated asset...")
-    urllib.request.urlretrieve(image_url, local_filename)
-    full_path = os.path.abspath(local_filename)
-    print(f"\n🎉 SUCCESS! Pixel art asset saved to:")
-    print(f"👉 {full_path}\n")
-except Exception as e:
-    print(f"❌ Error downloading final image: {e}")
-    sys.exit(1)
+    prompt_text = args.prompt
+    file_prefix = "".join(c for c in args.filename_prefix if c.isalnum() or c in ("_", "-")).rstrip()
+
+    # Determine dimensions
+    width = args.width
+    height = args.height
+    if not width:
+        width = 1024 if args.flux else 512
+    if not height:
+        height = 1024 if args.flux else 512
+
+    # Dynamically detect texture requests
+    texture_keywords = ["texture", "ground", "wall", "pattern", "seamless", "tileable", "background", "floor"]
+    is_texture = any(kw in prompt_text.lower() for kw in texture_keywords)
+
+    if args.flux:
+        print("🚀 Using premium Flux 2 pipeline (quantized 4B GGUF)")
+        if is_texture:
+            final_positive_prompt = f"{prompt_text}, seamless tileable pattern, full frame texture, high fidelity, 8k resolution, detailed"
+        else:
+            final_positive_prompt = f"{prompt_text}, flat solid background, clean details, isolated game asset, high fidelity"
+        final_negative_prompt = ""
+    else:
+        print("🎨 Using standard SD 1.5 + Redmond Pixel Art LoRA pipeline")
+        if is_texture:
+            final_positive_prompt = f"{prompt_text}, retro pixel art style, 16-bit, seamless tileable pattern, full frame texture, clean pixels, sharp details"
+            final_negative_prompt = "low quality, blurry, worst quality, 3d render, photorealistic, depth of field, isolated object, border, frame, background, floating item, multiple items, diagrams"
+        else:
+            final_positive_prompt = f"{prompt_text}, retro pixel art style, 16-bit sprite, flat solid background, clean pixels, sharp details, isolated game asset"
+            final_negative_prompt = "low quality, blurry, worst quality, 3d render, photorealistic, gradient background, depth of field, shadow cast"
+
+    # Define workflow based on pipeline
+    if args.flux:
+        workflow = {
+            "1": {
+                "inputs": {
+                    "unet_name": "flux-2-klein-4b-Q8_0.gguf"
+                },
+                "class_type": "UnetLoaderGGUF"
+            },
+            "2": {
+                "inputs": {
+                    "clip_name": "qwen_3_4b_fp4_flux2.safetensors",
+                    "type": "flux2"
+                },
+                "class_type": "CLIPLoader"
+            },
+            "3": {
+                "inputs": {
+                    "vae_name": "flux2-vae.safetensors"
+                },
+                "class_type": "VAELoader"
+            },
+            "4": {
+                "inputs": {
+                    "width": width,
+                    "height": height,
+                    "batch_size": 1
+                },
+                "class_type": "EmptyLatentImage"
+            },
+            "5": {
+                "inputs": {
+                    "text": final_positive_prompt,
+                    "clip": ["2", 0]
+                },
+                "class_type": "CLIPTextEncode"
+            },
+            "6": {
+                "inputs": {
+                    "conditioning": ["5", 0],
+                    "guidance": 3.5
+                },
+                "class_type": "FluxGuidance"
+            },
+            "7": {
+                "inputs": {
+                    "text": final_negative_prompt,
+                    "clip": ["2", 0]
+                },
+                "class_type": "CLIPTextEncode"
+            },
+            "8": {
+                "inputs": {
+                    "seed": random.randint(1, 1000000000),
+                    "steps": 20,
+                    "cfg": 1.0,
+                    "sampler_name": "euler",
+                    "scheduler": "beta",
+                    "denoise": 1.0,
+                    "model": ["1", 0],
+                    "positive": ["6", 0],
+                    "negative": ["7", 0],
+                    "latent_image": ["4", 0]
+                },
+                "class_type": "KSampler"
+            },
+            "9": {
+                "inputs": {
+                    "samples": ["8", 0],
+                    "vae": ["3", 0]
+                },
+                "class_type": "VAEDecode"
+            },
+            "10": {
+                "inputs": {
+                    "filename_prefix": file_prefix,
+                    "images": ["9", 0]
+                },
+                "class_type": "SaveImage"
+            }
+        }
+    else:
+        workflow = {
+            "4": {
+                "inputs": {
+                    "ckpt_name": DEFAULT_CHECKPOINT
+                },
+                "class_type": "CheckpointLoaderSimple"
+            },
+            "10": {
+                "inputs": {
+                    "model": ["4", 0],
+                    "clip": ["4", 1],
+                    "lora_name": DEFAULT_LORA,
+                    "strength_model": 1.0,
+                    "strength_clip": 1.0
+                },
+                "class_type": "LoraLoader"
+            },
+            "5": {
+                "inputs": {
+                    "width": width,
+                    "height": height,
+                    "batch_size": 1
+                },
+                "class_type": "EmptyLatentImage"
+            },
+            "6": {
+                "inputs": {
+                    "text": final_positive_prompt,
+                    "clip": ["10", 1]
+                },
+                "class_type": "CLIPTextEncode"
+            },
+            "7": {
+                "inputs": {
+                    "text": final_negative_prompt,
+                    "clip": ["10", 1]
+                },
+                "class_type": "CLIPTextEncode"
+            },
+            "3": {
+                "inputs": {
+                    "seed": random.randint(1, 1000000000),
+                    "steps": 25,
+                    "cfg": 7.5,
+                    "sampler_name": "euler_ancestral",
+                    "scheduler": "karras",
+                    "denoise": 1.0,
+                    "model": ["10", 0],
+                    "positive": ["6", 0],
+                    "negative": ["7", 0],
+                    "latent_image": ["5", 0]
+                },
+                "class_type": "KSampler"
+            },
+            "8": {
+                "inputs": {
+                    "samples": ["3", 0],
+                    "vae": ["4", 2]
+                },
+                "class_type": "VAEDecode"
+            },
+            "9": {
+                "inputs": {
+                    "filename_prefix": file_prefix,
+                    "images": ["8", 0]
+                },
+                "class_type": "SaveImage"
+            }
+        }
+
+    print(f"🎨 Generating asset: \"{prompt_text}\" ({width}x{height})")
+    print(f"🔌 Connecting to local ComfyUI API at {COMFYUI_URL}...")
+
+    # Refresh ComfyUI to reload newly downloaded files
+    refresh_comfyui()
+
+    # 1. Queue the prompt
+    payload = json.dumps({"prompt": workflow}).encode("utf-8")
+    req = urllib.request.Request(
+        f"{COMFYUI_URL}/prompt",
+        data=payload,
+        headers={"Content-Type": "application/json"}
+    )
+
+    try:
+        with urllib.request.urlopen(req) as response:
+            res_data = json.loads(response.read().decode("utf-8"))
+            prompt_id = res_data["prompt_id"]
+            print(f"✔ Job queued successfully! Prompt ID: {prompt_id}")
+    except Exception as e:
+        print(f"❌ Error connecting to ComfyUI: {e}")
+        print("Please make sure ComfyUI is running and fully loaded!")
+        sys.exit(1)
+
+    # 2. Poll for completion
+    if args.flux:
+        print("⏳ Generating premium high-fidelity asset (Flux 2 takes longer, ~15-20 seconds on your RTX 5060)...")
+    else:
+        print("⏳ Generating pixel art sprite (takes ~3-5 seconds on your RTX 5060)...")
+        
+    finished = False
+    filename = None
+    subfolder = ""
+
+    while not finished:
+        time.sleep(0.5)
+        try:
+            # Check queue history
+            with urllib.request.urlopen(f"{COMFYUI_URL}/history/{prompt_id}") as response:
+                history_data = json.loads(response.read().decode("utf-8"))
+                if prompt_id in history_data:
+                    # Job is completed! Get image details
+                    outputs = history_data[prompt_id].get("outputs", {})
+                    for node_id, output in outputs.items():
+                        if "images" in output:
+                            img_info = output["images"][0]
+                            filename = img_info["filename"]
+                            subfolder = img_info.get("subfolder", "")
+                    finished = True
+        except Exception:
+            # Loop silently during loading/processing
+            pass
+
+    if not filename:
+        print("❌ Error: Failed to retrieve generated image info from ComfyUI.")
+        sys.exit(1)
+
+    # 3. Retrieve and save the image locally
+    image_url = f"{COMFYUI_URL}/view?filename={filename}&subfolder={subfolder}&type=output"
+    local_filename = f"{file_prefix}_{int(time.time())}.png"
+
+    try:
+        print("📥 Downloading generated asset...")
+        urllib.request.urlretrieve(image_url, local_filename)
+        full_path = os.path.abspath(local_filename)
+        print(f"\n🎉 SUCCESS! Asset saved to:")
+        print(f"👉 {full_path}\n")
+    except Exception as e:
+        print(f"❌ Error downloading final image: {e}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
