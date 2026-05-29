@@ -41,42 +41,104 @@ def free_ollama_vram():
     except Exception as e:
         print(f"Warning: Failed to free Ollama VRAM: {e}")
 
+def interactive_wizard():
+    print("\n\033[1;36m==========================================================\033[0m")
+    print("\033[1;36m  🎨 Vibe Asset Generation Wizard (Interactive Mode)      \033[0m")
+    print("\033[1;36m==========================================================\033[0m")
+    
+    # 1. Select Asset Category
+    print("\n\033[1;33m[1] Select Asset Category:\033[0m")
+    print("  1) Character / Enemy Sprite (Side-View Profile)")
+    print("  2) Tileable Terrain Block (Seamless Ground/Wall)")
+    print("  3) Parallax Environment Background Layer")
+    print("  4) Collectible / UI Item Icon")
+    category = input("\nChoose option (1-4, default 1): ").strip() or "1"
+    
+    # 2. Enter Subject
+    print("\n\033[1;33m[2] Enter Subject / Concept:\033[0m")
+    print("  (e.g., 'red dragon', 'mossy brick', 'cyberpunk warrior')")
+    subject = input("Subject: ").strip()
+    if not subject:
+        print("❌ Error: Subject cannot be empty!")
+        sys.exit(1)
+        
+    # 3. Choose Quality Engine
+    print("\n\033[1;33m[3] Select Quality Engine:\033[0m")
+    print("  1) Standard (Retro 16-bit Pixel Art - SD 1.5 + LoRA)")
+    print("  2) Premium (Ultra High-Fidelity - Flux 2)")
+    engine = input("\nChoose option (1-2, default 1): ").strip() or "1"
+    use_flux = (engine == "2")
+    
+    # 4. Filename Prefix
+    print("\n\033[1;33m[4] Enter Filename Prefix:\033[0m")
+    print("  (default 'vibe_asset', e.g. 'hero_run')")
+    prefix = input("Prefix: ").strip() or "vibe_asset"
+    file_prefix = "".join(c for c in prefix if c.isalnum() or c in ("_", "-")).rstrip()
+    
+    # Auto-construct the optimal prompt based on category & engine
+    if use_flux:
+        if category == "2":
+            prompt = f"{subject}, seamless tileable pattern, full frame texture, high fidelity, 8k resolution, detailed"
+        else:
+            prompt = f"{subject}, flat solid background, clean details, isolated game asset, high fidelity"
+    else:
+        # Standard SD 1.5 + LoRA Pixel Art formulas
+        if category == "1":
+            prompt = f"{subject} character, side-view profile, retro pixel art, 16-bit sprite, flat solid blue background, isolated game asset, clean pixels, sharp details"
+        elif category == "2":
+            prompt = f"{subject} block, retro pixel art, 16-bit, seamless tileable pattern, full frame texture, clean pixels, sharp details"
+        elif category == "3":
+            prompt = f"{subject}, flat 2D silhouette layer, retro pixel art, 16-bit, horizontal environment layer, solid blue background"
+        elif category == "4":
+            prompt = f"{subject}, retro pixel art, 16-bit icon, flat solid black background, high contrast, clean outline"
+            
+    # Determine default dimensions
+    width = 1024 if use_flux else 512
+    height = 1024 if use_flux else 512
+    
+    return prompt, file_prefix, use_flux, width, height
+
 def main():
-    parser = argparse.ArgumentParser(
-        description="vibe-asset - Generate local AI game assets using ComfyUI",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
+    # If no arguments are provided, launch the beautiful interactive wizard!
+    if len(sys.argv) == 1:
+        prompt_text, file_prefix, use_flux, width, height = interactive_wizard()
+    else:
+        parser = argparse.ArgumentParser(
+            description="vibe-asset - Generate local AI game assets using ComfyUI",
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            epilog="""
 Examples:
   vibe-asset "red dragon monster sprite" red_dragon
   vibe-asset "futuristic sci-fi base tile" sci_fi_tile --width 1024 --height 1024
   vibe-asset "epic dark fantasy castle" castle --flux
 """
-    )
-    parser.add_argument("prompt", type=str, help="The prompt to generate the asset from")
-    parser.add_argument("filename_prefix", type=str, nargs="?", default="vibe_asset", help="Filename prefix for the saved asset")
-    parser.add_argument("--flux", action="store_true", help="Use high-fidelity Flux 2 (flux-2-klein-4b-Q8_0.gguf) model instead of standard SD 1.5")
-    parser.add_argument("--width", type=int, help="Width of the generated image (default: 512 for SD 1.5, 1024 for Flux)")
-    parser.add_argument("--height", type=int, help="Height of the generated image (default: 512 for SD 1.5, 1024 for Flux)")
+        )
+        parser.add_argument("prompt", type=str, help="The prompt to generate the asset from")
+        parser.add_argument("filename_prefix", type=str, nargs="?", default="vibe_asset", help="Filename prefix for the saved asset")
+        parser.add_argument("--flux", action="store_true", help="Use high-fidelity Flux 2 (flux-2-klein-4b-Q8_0.gguf) model instead of standard SD 1.5")
+        parser.add_argument("--width", type=int, help="Width of the generated image (default: 512 for SD 1.5, 1024 for Flux)")
+        parser.add_argument("--height", type=int, help="Height of the generated image (default: 512 for SD 1.5, 1024 for Flux)")
 
-    # Parse arguments
-    args = parser.parse_args()
+        # Parse arguments
+        args = parser.parse_args()
 
-    prompt_text = args.prompt
-    file_prefix = "".join(c for c in args.filename_prefix if c.isalnum() or c in ("_", "-")).rstrip()
+        prompt_text = args.prompt
+        file_prefix = "".join(c for c in args.filename_prefix if c.isalnum() or c in ("_", "-")).rstrip()
+        use_flux = args.flux
 
-    # Determine dimensions
-    width = args.width
-    height = args.height
-    if not width:
-        width = 1024 if args.flux else 512
-    if not height:
-        height = 1024 if args.flux else 512
+        # Determine dimensions
+        width = args.width
+        height = args.height
+        if not width:
+            width = 1024 if use_flux else 512
+        if not height:
+            height = 1024 if use_flux else 512
 
     # Dynamically detect texture requests
     texture_keywords = ["texture", "ground", "wall", "pattern", "seamless", "tileable", "background", "floor"]
     is_texture = any(kw in prompt_text.lower() for kw in texture_keywords)
 
-    if args.flux:
+    if use_flux:
         print("🚀 Using premium Flux 2 pipeline (quantized 4B GGUF)")
         if is_texture:
             final_positive_prompt = f"{prompt_text}, seamless tileable pattern, full frame texture, high fidelity, 8k resolution, detailed"
