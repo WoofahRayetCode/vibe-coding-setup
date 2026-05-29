@@ -34,6 +34,27 @@ prev_tx_bytes=0
 ticker_text=" [GODOT MASTER] Typed Dictionaries are now natively compiled for 3x faster iterations.  |  [QWEN 30B] Architect model optimized with 16K context windows for complex systems planning.  |  [PYTHON MASTER] Experimental Free-Threaded build (PEP 703) enables true GIL-free multicore parallel execution.  |  [QWEN 7B] Editor model locked at Temperature 0 for rapid, deterministic diff modifications.  |  [GAMEMAKER BETA] Dynamic Audio Effect bus routing and persistent GML structs optimized.  |  [DEEPSEEK 16B] Specialized translator profile handles cross-language APIs with full comments preservation.  |  [PYTHON MASTER] Experimental Tier 2 JIT compiler (PEP 744) enabled dynamically for 15% faster hot loops.  |  [DOLPHIN 8B] Uncensored model locks all 33 layers into VRAM for boundary-free programming.  |  [GODOT MASTER] RenderingDevice GL Compatibility pipeline optimized for laptop GPUs.  |  [PYTHON MASTER] Brand new colorized interactive REPL featuring multi-line editing now active.  |  [GAMEMAKER BETA] New vector particle shapes and physics bindings added. "
 ticker_idx=0
 
+# Frames for thinking ASCII question mark animation (4 frames, 4 lines each)
+q_frame0_0="   .---. "
+q_frame0_1="  /  .  \\"
+q_frame0_2="    /  / "
+q_frame0_3="    (o)  "
+
+q_frame1_0="   .---. "
+q_frame1_1="  /  .  \\"
+q_frame1_2="    |  | "
+q_frame1_3="    (O)  "
+
+q_frame2_0="   .---. "
+q_frame2_1="  /  .  \\"
+q_frame2_2="    \\  \\ "
+q_frame2_3="    (o)  "
+
+q_frame3_0="   .---. "
+q_frame3_1="  /  .  \\"
+q_frame3_2="    |  | "
+q_frame3_3="    (O)  "
+
 # Restore cursor on exit
 trap 'tput cnorm; exit' INT TERM EXIT
 
@@ -124,12 +145,38 @@ while true; do
     # Fetch active models
     models_output=$(ollama ps 2>/dev/null | tail -n +2)
 
-    # 2. Print Dynamic Info (Time & Shell)
+    # 2. Print Dynamic Info (Time & Shell) & thinking question mark columns
     current_time=$(date +"%Y-%m-%d %H:%M:%S")
-    echo -e "  ${CYAN}[ SYSTEM TIME ]${NC}  $current_time${EL}"
-    echo -e "  ${CYAN}[ HOST SHELL  ]${NC}  $SHELL${EL}"
-    echo -e "  ${CYAN}[ WORKING DIR ]${NC}  $(pwd)${EL}"
-    
+
+    # Select animation frame
+    frame_idx=$(( ticker_idx % 4 ))
+    case $frame_idx in
+        0) q_l0="$q_frame0_0"; q_l1="$q_frame0_1"; q_l2="$q_frame0_2"; q_l3="$q_frame0_3" ;;
+        1) q_l0="$q_frame1_0"; q_l1="$q_frame1_1"; q_l2="$q_frame1_2"; q_l3="$q_frame1_3" ;;
+        2) q_l0="$q_frame2_0"; q_l1="$q_frame2_1"; q_l2="$q_frame2_2"; q_l3="$q_frame2_3" ;;
+        3) q_l0="$q_frame3_0"; q_l1="$q_frame3_1"; q_l2="$q_frame3_2"; q_l3="$q_frame3_3" ;;
+    esac
+
+    col_w=$(( cols - 16 ))
+    if [ "$col_w" -lt 30 ]; then col_w=30; fi
+
+    # Time line
+    line_time=$(printf "  %-*s" $col_w "${CYAN}[ SYSTEM TIME ]${NC}  $current_time")
+    echo -e "${line_time}${YELLOW}${q_l0}${NC}${EL}"
+
+    # Shell line
+    line_shell=$(printf "  %-*s" $col_w "${CYAN}[ HOST SHELL  ]${NC}  $SHELL")
+    echo -e "${line_shell}${YELLOW}${q_l1}${NC}${EL}"
+
+    # Directory line (truncated safely if too long)
+    pwd_str=$(pwd)
+    max_pwd_len=$(( col_w - 20 ))
+    if [ "${#pwd_str}" -gt "$max_pwd_len" ]; then
+        pwd_str="...${pwd_str: -$((max_pwd_len - 3))}"
+    fi
+    line_dir=$(printf "  %-*s" $col_w "${CYAN}[ WORKING DIR ]${NC}  $pwd_str")
+    echo -e "${line_dir}${YELLOW}${q_l2}${NC}${EL}"
+
     # Read model updates cache and format notification badge
     update_line=""
     if [ -f "$HOME/.cache/vibe-model-updates.txt" ]; then
@@ -138,8 +185,14 @@ while true; do
             update_line="  ${RED}[ UPDATE AVAILABLE ]${NC} ${YELLOW}New versions found for: ${updates}(Run setup.sh to rebuild)${EL}"
         fi
     fi
+
+    # Print Notification + Animation line 4
     if [ -n "$update_line" ]; then
-        echo -e "$update_line"
+        line_upd=$(printf "  %-*s" $col_w "$update_line")
+        echo -e "${line_upd}${YELLOW}${q_l3}${NC}${EL}"
+    else
+        line_blank=$(printf "  %-*s" $col_w " ")
+        echo -e "${line_blank}${YELLOW}${q_l3}${NC}${EL}"
     fi
     
     echo -e "${GRAY}$divider${NC}${EL}"
