@@ -51,6 +51,9 @@ if command -v vibe-free &> /dev/null; then
     vibe-free
 fi
 
+# Print active working directory
+echo -e "\e[0;34mActive Workspace Directory: \e[1;36m$(pwd)\e[0m"
+
 # Determine Aider command based on mode
 case "$mode" in
     deepseek)
