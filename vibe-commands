@@ -35,9 +35,10 @@ draw_page() {
     tput cup 0 0
     
         0)
-            echo -e "${CYAN}═══ VIBE CUSTOM COMMANDS [1/3] ═══${NC}${EL}"
+            echo -e "${CYAN}═══ VIBE CUSTOM COMMANDS [1/4] ═══${NC}${EL}"
             echo -e "  ${GREEN}vibe-start [dir] [prof]${NC} Start Tmux coding session${EL}"
             echo -e "    ${CYAN}Profiles:${NC} qwen (default), deepseek, translate${EL}"
+            echo -e "  ${GREEN}vibe-translate <src> <tgt>${NC} Direct local file translation${EL}"
             echo -e "  ${GREEN}vibe-asset <prompt>${NC}     Generate ComfyUI assets${EL}"
             echo -e "    ${CYAN}--flux${NC}                Use premium Flux 2 GGUF${EL}"
             echo -e "    ${CYAN}--width / --height${NC}   Custom canvas dimension${EL}"
@@ -47,7 +48,7 @@ draw_page() {
             echo -e "  ${GREEN}vibe-free${NC}               Free GPU VRAM (Ollama+ComfyUI)${EL}"
             ;;
         1)
-            echo -e "${YELLOW}═══ AIDER CO-PILOT COMMANDS [2/3] ═══${NC}${EL}"
+            echo -e "${YELLOW}═══ AIDER CO-PILOT COMMANDS [2/4] ═══${NC}${EL}"
             echo -e "  ${CYAN}/add <file>${NC}             Add file to LLM coding context${EL}"
             echo -e "  ${CYAN}/drop <file>${NC}            Drop file from LLM context${EL}"
             echo -e "  ${CYAN}/ask <query>${NC}            Ask codebase questions (no writes)${EL}"

@@ -130,6 +130,12 @@ if [ -f "vibe-start" ]; then
     echo -e "${GREEN}✔ Installed 'vibe-start' to $BIN_DIR/vibe-start.${NC}"
 fi
 
+if [ -f "vibe-translate" ]; then
+    cp vibe-translate "$BIN_DIR/vibe-translate"
+    chmod +x "$BIN_DIR/vibe-translate"
+    echo -e "${GREEN}✔ Installed 'vibe-translate' to $BIN_DIR/vibe-translate.${NC}"
+fi
+
 # 4. Copy Aider configuration files & Shell integrations
 echo -e "\n${BLUE}[4/7] Copying Global Aider Configuration Files & Shell Integrations...${NC}"
 

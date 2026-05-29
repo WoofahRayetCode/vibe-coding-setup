@@ -1,0 +1,95 @@
+#!/bin/bash
+# vibe-translate - Direct, lightning-fast file-to-file code translation powered by local DeepSeek Coder V2
+
+# Colors for terminal output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+if [ "$#" -lt 2 ]; then
+    echo -e "${RED}Error: Missing arguments!${NC}"
+    echo -e "Usage: vibe-translate <source_file> <target_file>"
+    echo -e "Example: vibe-translate Player.cs Player.gd"
+    exit 1
+fi
+
+source_file="$1"
+target_file="$2"
+
+if [ ! -f "$source_file" ]; then
+    echo -e "${RED}Error: Source file '$source_file' does not exist!${NC}"
+    exit 1
+fi
+
+# Detect languages based on file extensions
+src_ext="${source_file##*.}"
+tgt_ext="${target_file##*.}"
+
+resolve_lang() {
+    case "$1" in
+        cs) echo "C#" ;;
+        gd) echo "GDScript (Godot 4)" ;;
+        py) echo "Python" ;;
+        js) echo "JavaScript" ;;
+        ts) echo "TypeScript" ;;
+        cpp|cc) echo "C++" ;;
+        h) echo "C++ Header" ;;
+        rs) echo "Rust" ;;
+        go) echo "Go" ;;
+        java) echo "Java" ;;
+        kt) echo "Kotlin" ;;
+        swift) echo "Swift" ;;
+        *) echo "$1" ;;
+    esac
+}
+
+src_lang=$(resolve_lang "$src_ext")
+tgt_lang=$(resolve_lang "$tgt_ext")
+
+echo -e "${YELLOW}[VIBE] Translating '$source_file' ($src_lang) ➔ '$target_file' ($tgt_lang)...${NC}"
+
+# Read source content
+src_content=$(cat "$source_file")
+
+# Escape content for JSON payload safely using python to avoid bash quoting bugs
+json_payload=$(python3 -c '
+import json, sys
+src_content = sys.stdin.read()
+prompt = f"Translate the following code from {sys.argv[1]} to clean, idiomatic {sys.argv[2]}.\n\nSource Code:\n{src_content}"
+print(json.dumps({
+    "model": "deepseek-coder-v2:16b-translate",
+    "prompt": prompt,
+    "stream": False
+}))
+' "$src_lang" "$tgt_lang" <<< "$src_content")
+
+# Run translation via Ollama API call
+echo -e "${YELLOW}[VIBE] Contacting local DeepSeek Translate engine...${NC}"
+response=$(curl -s -X POST http://127.0.0.1:11434/api/generate -d "$json_payload")
+
+# Parse translation result
+translated_code=$(echo "$response" | python3 -c '
+import json, sys
+data = json.load(sys.stdin)
+response_text = data.get("response", "")
+# Strip markdown fences if the model output them despite system prompt
+if response_text.startswith("```"):
+    lines = response_text.splitlines()
+    if len(lines) > 1 and lines[0].startswith("```"):
+        lines = lines[1:]
+    if len(lines) > 0 and lines[-1].strip() == "```":
+        lines = lines[:-1]
+    response_text = "\n".join(lines)
+sys.stdout.write(response_text)
+')
+
+if [ -z "$translated_code" ]; then
+    echo -e "${RED}Error: Local translation model returned an empty response! Check if Ollama is active.${NC}"
+    exit 1
+fi
+
+# Write translated content to target file
+echo "$translated_code" > "$target_file"
+
+echo -e "${GREEN}✔ Translation successful! Output written to '$target_file'.${NC}"
