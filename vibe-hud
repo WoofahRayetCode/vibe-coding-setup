@@ -22,6 +22,10 @@ header_drawn=0
 prev_idle=0
 prev_total=0
 
+# Variables for pure Bash Disk I/O calculation
+prev_read_sectors=0
+prev_write_sectors=0
+
 # Restore cursor on exit
 trap 'tput cnorm; exit' INT TERM EXIT
 
@@ -172,11 +176,45 @@ while true; do
     # C. Fetch System RAM usage
     ram_info=$(free -m | awk '/Mem:/ {printf "%.1f GB / %.1f GB (%.0f%%)\n", $3/1024, $2/1024, $3/$2*100}')
 
+    # D. Pure Bash Disk I/O Speed Calculator
+    current_read_sectors=0
+    current_write_sectors=0
+    while read -r _ _ dev r_sect _ _ _ w_sect _; do
+        if [[ "$dev" =~ ^(nvme[0-9]n[0-9]|sd[a-z])$ ]]; then
+            current_read_sectors=$((current_read_sectors + r_sect))
+            current_write_sectors=$((current_write_sectors + w_sect))
+        fi
+    done < /proc/diskstats
+
+    diff_read=$((current_read_sectors - prev_read_sectors))
+    diff_write=$((current_write_sectors - prev_write_sectors))
+
+    # Convert sectors to MB (1 sector = 512 bytes; 2048 sectors = 1 MB)
+    if [ "$aider_running" -eq 1 ]; then
+        # 0.2s loop interval -> multiply difference by 5 to get per-second rate
+        read_mb=$(( diff_read * 5 / 2048 ))
+        write_mb=$(( diff_write * 5 / 2048 ))
+    else
+        # 1.0s loop interval
+        read_mb=$(( diff_read / 2048 ))
+        write_mb=$(( diff_write / 2048 ))
+    fi
+
+    # Handle negative differences on first iteration or wrap-arounds
+    if [ "$read_mb" -lt 0 ]; then read_mb=0; fi
+    if [ "$write_mb" -lt 0 ]; then write_mb=0; fi
+
+    prev_read_sectors=$current_read_sectors
+    prev_write_sectors=$current_write_sectors
+
+    disk_info="${read_mb} MB/s Read | ${write_mb} MB/s Write"
+
     echo -e "  ${CYAN}[ HARDWARE STATUS ]${NC}${EL}"
     echo -e "  VRAM Usage:   [${GREEN}${bar_filled}${GRAY}${bar_empty}${NC}] ${gpu_used_gb} GB / ${gpu_total_gb} GB (${gpu_pct}%)${EL}"
     echo -e "  GPU Load/Temp: [${GREEN}${gpu_load_bar_filled}${GRAY}${gpu_load_bar_empty}${NC}] ${YELLOW}${gpu_load}% Load${NC} | ${YELLOW}${gpu_temp}C${NC}${EL}"
     echo -e "  CPU Usage:    [${GREEN}${cpu_bar_filled}${GRAY}${cpu_bar_empty}${NC}] ${cpu_usage}% Load | ${YELLOW}${cpu_temp_str}${NC}${EL}"
     echo -e "  System RAM:    $ram_info${EL}"
+    echo -e "  Disk I/O:      $disk_info${EL}"
     echo -e "${GRAY}$divider${NC}${EL}"
     echo -e "${EL}"
 
