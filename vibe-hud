@@ -31,7 +31,7 @@ prev_rx_bytes=0
 prev_tx_bytes=0
 
 # Variables for scrolling News Ticker (Godot & GameMaker Bleeding-Edge updates)
-ticker_text=" [GODOT MASTER] Typed Dictionaries are now natively compiled for 3x faster iterations.  |  [PYTHON MASTER] Experimental Free-Threaded build (PEP 703) enables true GIL-free multicore parallel execution.  |  [GAMEMAKER BETA] Dynamic Audio Effect bus routing and persistent GML structs optimized.  |  [PYTHON MASTER] Experimental Tier 2 JIT compiler (PEP 744) enabled dynamically for 15% faster hot loops.  |  [GODOT MASTER] RenderingDevice GL Compatibility pipeline optimized for laptop GPUs.  |  [PYTHON MASTER] Brand new colorized interactive REPL featuring multi-line editing now active.  |  [GAMEMAKER BETA] New vector particle shapes and physics bindings added. "
+ticker_text=" [GODOT MASTER] Typed Dictionaries are now natively compiled for 3x faster iterations.  |  [QWEN 30B] Architect model optimized with 16K context windows for complex systems planning.  |  [PYTHON MASTER] Experimental Free-Threaded build (PEP 703) enables true GIL-free multicore parallel execution.  |  [QWEN 7B] Editor model locked at Temperature 0 for rapid, deterministic diff modifications.  |  [GAMEMAKER BETA] Dynamic Audio Effect bus routing and persistent GML structs optimized.  |  [DEEPSEEK 16B] Specialized translator profile handles cross-language APIs with full comments preservation.  |  [PYTHON MASTER] Experimental Tier 2 JIT compiler (PEP 744) enabled dynamically for 15% faster hot loops.  |  [DOLPHIN 8B] Uncensored model locks all 33 layers into VRAM for boundary-free programming.  |  [GODOT MASTER] RenderingDevice GL Compatibility pipeline optimized for laptop GPUs.  |  [PYTHON MASTER] Brand new colorized interactive REPL featuring multi-line editing now active.  |  [GAMEMAKER BETA] New vector particle shapes and physics bindings added. "
 ticker_idx=0
 
 # Restore cursor on exit
@@ -39,6 +39,64 @@ trap 'tput cnorm; exit' INT TERM EXIT
 
 # Trap window resize signals to force a clear
 trap 'clear' WINCH
+
+# Background update checker function (Runs asynchronously in separate subshell)
+check_model_updates() {
+    sleep 5
+    while true; do
+        updates=""
+        
+        # Local model list
+        local_list=$(ollama list 2>/dev/null)
+        if [ -n "$local_list" ]; then
+            # Check Qwen 30B
+            local_id=$(echo "$local_list" | grep "^qwen3-coder:30b[[:space:]]" | awk '{print $2}')
+            if [ -n "$local_id" ]; then
+                remote_digest=$(curl -sI "https://registry.ollama.ai/v2/library/qwen3-coder/manifests/30b" | grep -i "ollama-content-digest" | awk '{print $2}' | tr -d '\r\n')
+                if [ -n "$remote_digest" ] && [[ "$remote_digest" != "$local_id"* ]]; then
+                    updates="${updates}qwen3-coder:30b "
+                fi
+            fi
+
+            # Check Qwen 7B
+            local_id=$(echo "$local_list" | grep "^qwen2.5-coder:7b[[:space:]]" | awk '{print $2}')
+            if [ -n "$local_id" ]; then
+                remote_digest=$(curl -sI "https://registry.ollama.ai/v2/library/qwen2.5-coder/manifests/7b" | grep -i "ollama-content-digest" | awk '{print $2}' | tr -d '\r\n')
+                if [ -n "$remote_digest" ] && [[ "$remote_digest" != "$local_id"* ]]; then
+                    updates="${updates}qwen2.5-coder:7b "
+                fi
+            fi
+
+            # Check DeepSeek 16B
+            local_id=$(echo "$local_list" | grep "^deepseek-coder-v2:16b[[:space:]]" | awk '{print $2}')
+            if [ -n "$local_id" ]; then
+                remote_digest=$(curl -sI "https://registry.ollama.ai/v2/library/deepseek-coder-v2/manifests/16b" | grep -i "ollama-content-digest" | awk '{print $2}' | tr -d '\r\n')
+                if [ -n "$remote_digest" ] && [[ "$remote_digest" != "$local_id"* ]]; then
+                    updates="${updates}deepseek-coder-v2:16b "
+                fi
+            fi
+
+            # Check Dolphin 8B
+            local_id=$(echo "$local_list" | grep "^dolphin-llama3:8b[[:space:]]" | awk '{print $2}')
+            if [ -n "$local_id" ]; then
+                remote_digest=$(curl -sI "https://registry.ollama.ai/v2/library/dolphin-llama3/manifests/8b" | grep -i "ollama-content-digest" | awk '{print $2}' | tr -d '\r\n')
+                if [ -n "$remote_digest" ] && [[ "$remote_digest" != "$local_id"* ]]; then
+                    updates="${updates}dolphin-llama3:8b "
+                fi
+            fi
+        fi
+
+        # Save to cache file
+        mkdir -p "$HOME/.cache"
+        echo "$updates" > "$HOME/.cache/vibe-model-updates.txt"
+
+        # Check every 30 minutes
+        sleep 1800
+    done
+}
+
+# Start the background update checker daemon
+check_model_updates &
 
 draw_header() {
     cols=$(tput cols)
@@ -71,6 +129,19 @@ while true; do
     echo -e "  ${CYAN}[ SYSTEM TIME ]${NC}  $current_time${EL}"
     echo -e "  ${CYAN}[ HOST SHELL  ]${NC}  $SHELL${EL}"
     echo -e "  ${CYAN}[ WORKING DIR ]${NC}  $(pwd)${EL}"
+    
+    # Read model updates cache and format notification badge
+    update_line=""
+    if [ -f "$HOME/.cache/vibe-model-updates.txt" ]; then
+        updates=$(cat "$HOME/.cache/vibe-model-updates.txt")
+        if [ -n "$updates" ]; then
+            update_line="  ${RED}[ UPDATE AVAILABLE ]${NC} ${YELLOW}New versions found for: ${updates}(Run setup.sh to rebuild)${EL}"
+        fi
+    fi
+    if [ -n "$update_line" ]; then
+        echo -e "$update_line"
+    fi
+    
     echo -e "${GRAY}$divider${NC}${EL}"
     echo -e "${EL}"
 
