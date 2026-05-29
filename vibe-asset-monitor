@@ -16,29 +16,11 @@ clear
 # Hide cursor
 tput civis
 
-# Flag to track if the static ASCII header has been drawn
-header_drawn=0
-
 # Restore cursor on exit
 trap 'tput cnorm; exit' INT TERM EXIT
 
-# Trap window resize signals to force a header redraw
-trap 'clear; header_drawn=0' WINCH
-
-draw_static_header() {
-    cols=$(tput cols)
-    border=$(printf -- '=%.0s' $(seq 1 $cols))
-    
-    tput cup 0 0
-    echo -e "${CYAN}$border${NC}"
-    echo -e "${CYAN} __     ___ _                   _   ${NC}"
-    echo -e "${CYAN} \\ \\   / (_) |__   ___    / \\   ___ ___  ___  | |_ ${NC}"
-    echo -e "${CYAN}  \\ \\ / /| | '_ \\ / _ \\  / _ \\ / __/ __|/ _ \\ | __|${NC}"
-    echo -e "${CYAN}   \\ V / | | |_) |  __/ / ___ \\\\__ \\\\__ \\  __/ | |_ ${NC}"
-    echo -e "${CYAN}    \\_/  |_|_.__/ \\___|/_/   \\_\\___/___/\\___|  \\__|${NC}"
-    echo -e "${CYAN}$border${NC}"
-    header_drawn=1
-}
+# Trap window resize signals to clear screen immediately
+trap 'clear' WINCH
 
 # Start ComfyUI in the background if it is not running
 start_comfyui() {
@@ -52,19 +34,29 @@ start_comfyui() {
 start_comfyui
 
 while true; do
-    # 1. Draw static header only if not already drawn
-    if [ "$header_drawn" -eq 0 ]; then
-        draw_static_header
+    tput cup 0 0
+    
+    cols=$(tput cols)
+    lines=$(tput lines)
+    
+    # Dynamic header selection based on terminal height
+    if [ "$lines" -ge 18 ]; then
+        border=$(printf -- '=%.0s' $(seq 1 $cols))
+        echo -e "${CYAN}$border${NC}${EL}"
+        echo -e "${CYAN} __     ___ _                   _   ${NC}${EL}"
+        echo -e "${CYAN} \\ \\   / (_) |__   ___    / \\   ___ ___  ___  | |_ ${NC}${EL}"
+        echo -e "${CYAN}  \\ \\ / /| | '_ \\ / _ \\  / _ \\ / __/ __|/ _ \\ | __|${NC}${EL}"
+        echo -e "${CYAN}   \\ V / | | |_) |  __/ / ___ \\\\__ \\\\__ \\  __/ | |_ ${NC}${EL}"
+        echo -e "${CYAN}    \\_/  |_|_.__/ \\___|/_/   \\_\\___/___/\\___|  \\__|${NC}${EL}"
+        echo -e "${CYAN}$border${NC}${EL}"
+    else
+        echo -e "${CYAN}═══ VIBE ASSET MONITOR ═════════════════════════════${NC}${EL}"
     fi
 
-    cols=$(tput cols)
     divider=$(printf -- '-%.0s' $(seq 1 $cols))
     border=$(printf -- '=%.0s' $(seq 1 $cols))
 
-    # 2. Move cursor directly to Line 9 (below the ASCII art)
-    tput cup 8 0
-
-    # 3. ComfyUI Server Status
+    # ComfyUI Server Status
     if curl -s http://127.0.0.1:8188/ &>/dev/null; then
         status_str="${GREEN}[ ACTIVE / ONLINE ]${NC}"
     else
@@ -72,17 +64,17 @@ while true; do
     fi
 
     echo -e "  ${CYAN}[ COMFYUI SERVER ]${NC}  $status_str${EL}"
-    echo -e "${GRAY}$divider${NC}"
+    echo -e "${GRAY}$divider${NC}${EL}"
 
-    # 4. Live PNG Asset List
-    echo -e "  ${CYAN}[ RECENTLY GENERATED PNG ASSETS ]${NC}"
-    echo ""
+    # Live PNG Asset List
+    echo -e "  ${CYAN}[ RECENTLY GENERATED PNG ASSETS ]${NC}${EL}"
+    echo -e "${EL}"
 
     png_files=$(ls -lt --time-style="+%Y-%m-%d %H:%M:%S" *.png 2>/dev/null | head -n 4)
 
     if [ -n "$png_files" ]; then
-        echo -e "  ${GRAY}FILENAME                        SIZE        GENERATED TIME${NC}"
-        echo -e "  ${GRAY}--------                        ----        --------------${NC}"
+        echo -e "  ${GRAY}FILENAME                        SIZE        GENERATED TIME${NC}${EL}"
+        echo -e "  ${GRAY}--------                        ----        --------------${NC}${EL}"
         echo "$png_files" | while read -r line; do
             # Extract columns
             size=$(echo "$line" | awk '{print $5}')
@@ -96,30 +88,32 @@ while true; do
                 size_str="$(( size / 1024 )).$(( (size % 1024) * 10 / 1024 )) KB"
             fi
 
-            echo -e "  ${GREEN}$(printf '%-30s' "$filename")${NC}  $(printf '%-10s' "$size_str")  $time_str"
+            echo -e "  ${GREEN}$(printf '%-30s' "$filename")${NC}  $(printf '%-10s' "$size_str")  $time_str${EL}"
         done
     else
-        echo -e "  ${GRAY}(No generated PNG assets found in this folder yet.)${NC}"
-        echo -e "  ${GRAY}Use 'vibe-asset \"prompt\"' to generate your first asset!${NC}"
+        echo -e "  ${GRAY}(No generated PNG assets found in this folder yet.)${NC}${EL}"
+        echo -e "  ${GRAY}Use 'vibe-asset \"prompt\"' to generate your first asset!${NC}${EL}"
     fi
 
-    # 5. ComfyUI Log Tail if it's still booting
+    # ComfyUI Log Tail if it's still booting
     if ! curl -s http://127.0.0.1:8188/ &>/dev/null; then
-        echo ""
-        echo -e "${GRAY}$divider${NC}"
-        echo -e "  ${CYAN}[ COMFYUI STARTUP LOGS ]${NC}"
+        echo -e "${EL}"
+        echo -e "${GRAY}$divider${NC}${EL}"
+        echo -e "  ${CYAN}[ COMFYUI STARTUP LOGS ]${NC}${EL}"
         if [ -f "/tmp/comfyui.log" ]; then
-            tail -n 3 /tmp/comfyui.log | sed 's/^/  /'
+            tail -n 3 /tmp/comfyui.log | sed 's/^/  /' | while read -r logline; do
+                echo -e "$logline${EL}"
+            done
         else
-            echo -e "  Awaiting ComfyUI background startup logs..."
+            echo -e "  Awaiting ComfyUI background startup logs...${EL}"
         fi
     fi
 
-    echo ""
-    echo -e "${CYAN}$border${NC}"
-    echo -e "  Press [Ctrl+C] to exit Monitor.                       "
+    echo -e "${EL}"
+    echo -e "${CYAN}$border${NC}${EL}"
+    echo -e "  Press [Ctrl+C] to exit Monitor.                       ${EL}"
     
-    # Clear anything remaining below
+    # Clear anything remaining below to prevent ghosting
     tput ed
     
     # 1.0 second update rate is perfect for asset monitoring
