@@ -31,7 +31,7 @@ prev_rx_bytes=0
 prev_tx_bytes=0
 
 # Variables for scrolling News Ticker (Godot & GameMaker Bleeding-Edge updates)
-ticker_text=" [GODOT MASTER] Typed Dictionaries are now natively compiled for 3x faster iterations.  |  [GAMEMAKER BETA] Dynamic Audio Effect bus routing and persistent GML structs optimized.  |  [GODOT MASTER] RenderingDevice GL Compatibility pipeline optimized for laptop GPUs.  |  [GAMEMAKER BETA] New vector particle shapes and physics bindings added. "
+ticker_text=" [GODOT MASTER] Typed Dictionaries are now natively compiled for 3x faster iterations.  |  [PYTHON MASTER] Experimental Free-Threaded build (PEP 703) enables true GIL-free multicore parallel execution.  |  [GAMEMAKER BETA] Dynamic Audio Effect bus routing and persistent GML structs optimized.  |  [PYTHON MASTER] Experimental Tier 2 JIT compiler (PEP 744) enabled dynamically for 15% faster hot loops.  |  [GODOT MASTER] RenderingDevice GL Compatibility pipeline optimized for laptop GPUs.  |  [PYTHON MASTER] Brand new colorized interactive REPL featuring multi-line editing now active.  |  [GAMEMAKER BETA] New vector particle shapes and physics bindings added. "
 ticker_idx=0
 
 # Restore cursor on exit
