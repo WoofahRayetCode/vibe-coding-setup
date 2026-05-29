@@ -1,6 +1,6 @@
-# GameMaker Language (GML) Reference Wiki & Best Practices
+# ⚡ Bleeding-Edge GameMaker GML Master-Branch Reference Wiki
 
-This document serves as a high-density, authoritative reference library for developing games in **GameMaker Studio 2 / LTS**.
+This document serves as an authoritative, high-density reference library strictly aligned with the **latest bleeding-edge GameMaker GML (manual.yoyogames.com & beta-manual.yoyogames.com)** development specifications. All paradigms, APIs, and design guidelines are optimized for modern, forward-compatible, and future-proof GML scripting.
 
 ---
 
