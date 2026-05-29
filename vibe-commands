@@ -37,7 +37,7 @@ draw_page() {
         0)
             echo -e "${CYAN}═══ VIBE CUSTOM COMMANDS [1/4] ═══${NC}${EL}"
             echo -e "  ${GREEN}vibe-start [dir] [prof]${NC} Start Tmux coding session${EL}"
-            echo -e "    ${CYAN}Profiles:${NC} qwen (default), deepseek, translate${EL}"
+            echo -e "    ${CYAN}Profiles:${NC} qwen (default), deepseek, translate, uncensored${EL}"
             echo -e "  ${GREEN}vibe-translate <src> <tgt>${NC} Direct local file translation${EL}"
             echo -e "  ${GREEN}vibe-asset <prompt>${NC}     Generate ComfyUI assets${EL}"
             echo -e "    ${CYAN}--flux${NC}                Use premium Flux 2 GGUF${EL}"
@@ -75,6 +75,7 @@ draw_page() {
             echo -e "  ${CYAN}/model ollama_chat/qwen3-coder:30b-tweaked${NC}${EL}"
             echo -e "  ${CYAN}/model ollama_chat/deepseek-coder-v2:16b-tweaked${NC}${EL}"
             echo -e "  ${CYAN}/model ollama_chat/deepseek-coder-v2:16b-translate${NC}${EL}"
+            echo -e "  ${CYAN}/model ollama_chat/dolphin-llama3:8b-tweaked${NC}${EL}"
             echo -e "  ${CYAN}/model ollama_chat/qwen2.5-coder:7b-tweaked${NC}${EL}"
             ;;
     esac
@@ -82,7 +83,7 @@ draw_page() {
     # Track the height to clear remaining lines in smaller splits to prevent ghosting
     lines_printed=9
     [ $page -eq 2 ] && lines_printed=8
-    [ $page -eq 3 ] && lines_printed=6
+    [ $page -eq 3 ] && lines_printed=7
     
     current_lines=$(tput lines)
     for ((i=lines_printed; i<current_lines; i++)); do

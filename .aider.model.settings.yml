@@ -19,6 +19,10 @@
   edit_format: diff
   use_repo_map: true
 
+- name: ollama_chat/dolphin-llama3:8b-tweaked
+  edit_format: diff
+  use_repo_map: true
+
 - name: ollama_chat/qwen2.5-coder:7b
   edit_format: whole
   use_repo_map: true

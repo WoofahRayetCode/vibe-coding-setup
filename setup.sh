@@ -49,6 +49,11 @@ if [ ! -f "Modelfile-deepseek-translate" ]; then
     exit 1
 fi
 
+if [ ! -f "Modelfile-dolphin" ]; then
+    echo -e "${RED}Error: Modelfile-dolphin not found in current folder!${NC}"
+    exit 1
+fi
+
 echo -e "${YELLOW}Building qwen3-coder:30b-tweaked (Architect)...${NC}"
 if ollama create qwen3-coder:30b-tweaked -f Modelfile-architect; then
     echo -e "${GREEN}✔ qwen3-coder:30b-tweaked built successfully.${NC}"
@@ -81,6 +86,19 @@ if ollama create deepseek-coder-v2:16b-translate -f Modelfile-deepseek-translate
     echo -e "${GREEN}✔ deepseek-coder-v2:16b-translate built successfully.${NC}"
 else
     echo -e "${RED}Failed to build deepseek-coder-v2:16b-translate.${NC}"
+fi
+
+echo -e "${YELLOW}Ensuring Dolphin Llama 3 8B is pulled...${NC}"
+if ! ollama list | grep -q "dolphin-llama3:8b"; then
+    echo -e "${YELLOW}Pulling dolphin-llama3:8b...${NC}"
+    ollama pull dolphin-llama3:8b
+fi
+
+echo -e "${YELLOW}Building dolphin-llama3:8b-tweaked (Uncensored)...${NC}"
+if ollama create dolphin-llama3:8b-tweaked -f Modelfile-dolphin; then
+    echo -e "${GREEN}✔ dolphin-llama3:8b-tweaked built successfully.${NC}"
+else
+    echo -e "${RED}Failed to build dolphin-llama3:8b-tweaked.${NC}"
 fi
 
 # 3. Install vibe-check and vibe-hud scripts

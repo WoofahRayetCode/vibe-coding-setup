@@ -169,7 +169,7 @@ while true; do
 
     # Check if Aider is actually running and scan its arguments
     aider_running=0
-    aider_target_profile="qwen" # qwen, deepseek, translate
+    aider_target_profile="qwen" # qwen, deepseek, translate, uncensored
     if pgrep -f "aider" >/dev/null; then
         aider_running=1
         aider_cmd=$(ps aux | grep -v grep | grep -E "aider|python -m aider" | tail -n 1)
@@ -180,6 +180,9 @@ while true; do
             elif echo "$aider_cmd" | grep -q "deepseek-coder-v2:16b-translate"; then
                 trans_model="deepseek-coder-v2:16b-translate"
                 aider_target_profile="translate"
+            elif echo "$aider_cmd" | grep -q "dolphin-llama3:8b-tweaked"; then
+                trans_model="dolphin-llama3:8b-tweaked"
+                aider_target_profile="uncensored"
             fi
         fi
     fi
@@ -195,7 +198,7 @@ while true; do
     if echo "$models_output" | grep -q "7b-tweaked"; then
         edit_active=1
     fi
-    if echo "$models_output" | grep -q -E "16b-translate|16b-tweaked"; then
+    if echo "$models_output" | grep -q -E "16b-translate|16b-tweaked|dolphin-llama3"; then
         trans_active=1
     fi
 
@@ -246,14 +249,16 @@ while true; do
         fi
     fi
 
-    # Resolve TRANSLATOR status
+    # Resolve TRANSLATOR/UNCENSORED status
     if [ "$trans_active" -eq 1 ]; then
-        if [ "$is_translating_file" -eq 1 ] || { [ "$aider_running" -eq 1 ] && [ "$aider_target_profile" = "translate" ] && [ "$is_gpu_busy" -eq 1 ]; }; then
+        if [ "$aider_running" -eq 1 ] && [ "$aider_target_profile" = "uncensored" ] && [ "$is_gpu_busy" -eq 1 ]; then
+            trans_status="${RED}[UNLEASHED  ]${NC} ◀ Processing uncensored query..."
+        elif [ "$is_translating_file" -eq 1 ] || { [ "$aider_running" -eq 1 ] && [ "$aider_target_profile" = "translate" ] && [ "$is_gpu_busy" -eq 1 ]; }; then
             trans_status="${MAGENTA}[TRANSLATING]${NC} ◀ Mapping logic & API..."
         elif [ "$aider_running" -eq 1 ] && [ "$aider_target_profile" = "deepseek" ] && [ "$is_gpu_busy" -eq 1 ]; then
             trans_status="${BLUE}[GENERATING ]${NC} ◀ Processing solution..."
         else
-            trans_status="${GREEN}[  READY  ]${NC} ◀ Awaiting translate..."
+            trans_status="${GREEN}[  READY  ]${NC} ◀ Awaiting task..."
         fi
     else
         if [ "$is_translating_file" -eq 1 ]; then
@@ -270,12 +275,18 @@ while true; do
         if [ "$trans_active" -eq 1 ]; then trans_status="${GREEN}[  READY  ]${NC} (Aider stopped)"; fi
     fi
 
+    # Dynamically change the role label on row 3 depending on model
+    trans_role="Translator"
+    if [[ "$trans_model" == *"dolphin"* ]]; then
+        trans_role="Uncensored"
+    fi
+
     echo -e "  ${CYAN}[ OLLAMA TRIPLE-MODEL STATUS ]${NC}${EL}"
     echo -e "  ROLE          MODEL NAME                      STATUS / VRAM STATE${EL}"
     echo -e "  ----          ----------                      -------------------${EL}"
     echo -e "  Architect     $(printf '%-30s' "$arch_model")  $arch_status${EL}"
     echo -e "  Editor        $(printf '%-30s' "$edit_model")  $edit_status${EL}"
-    echo -e "  Translator    $(printf '%-30s' "$trans_model")  $trans_status${EL}"
+    echo -e "  $(printf '%-13s' "$trans_role")$(printf '%-30s' "$trans_model")  $trans_status${EL}"
     echo -e "${EL}"
     echo -e "${CYAN}$border${NC}${EL}"
     echo -e "  Press [Ctrl+C] to exit HUD.                       ${EL}"

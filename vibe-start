@@ -18,7 +18,7 @@ mode="default"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        deepseek|translate|qwen)
+        deepseek|translate|qwen|uncensored)
             mode="$1"
             shift
             ;;
@@ -27,7 +27,7 @@ while [[ $# -gt 0 ]]; do
                 target_dir="$1"
             else
                 echo -e "\e[0;31mError: Directory or profile '$1' is invalid!\e[0m"
-                echo -e "Usage: vibe-start [dir] [qwen|deepseek|translate]"
+                echo -e "Usage: vibe-start [dir] [qwen|deepseek|translate|uncensored]"
                 exit 1
             fi
             shift
@@ -63,6 +63,10 @@ case "$mode" in
     translate)
         echo -e "\e[0;32mStarting Vibe Workspace with DeepSeek Coder V2 16B (Code Translation Profile)...\e[0m"
         aider_cmd="aider --model ollama_chat/deepseek-coder-v2:16b-translate --no-architect"
+        ;;
+    uncensored)
+        echo -e "\e[0;32mStarting Uncensored Vibe Workspace with Dolphin Llama 3 8B (Unrestricted Profile)...\e[0m"
+        aider_cmd="aider --model ollama_chat/dolphin-llama3:8b-tweaked --no-architect"
         ;;
     *)
         echo -e "\e[0;32mStarting Vibe Workspace with default Qwen 30B/7B Dual-Model (Architect Mode)...\e[0m"
