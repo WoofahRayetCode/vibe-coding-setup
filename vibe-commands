@@ -34,10 +34,12 @@ draw_page() {
     
     tput cup 0 0
     
+    case $page in
         0)
-            echo -e "${CYAN}═══ VIBE CUSTOM COMMANDS [1/4] ═══${NC}${EL}"
-            echo -e "  ${GREEN}vibe-start [dir] [prof]${NC} Start Tmux coding session${EL}"
-            echo -e "    ${CYAN}Profiles:${NC} qwen (default), deepseek, translate, uncensored${EL}"
+            echo -e "${CYAN}═══ VIBE CUSTOM COMMANDS [1/5] ═══${NC}${EL}"
+            echo -e "  ${GREEN}vibe-start [dir] [mode] [prof]${NC} Start Tmux coding session${EL}"
+            echo -e "    ${CYAN}Modes:${NC} qwen (default), deepseek, translate, uncensored${EL}"
+            echo -e "    ${CYAN}Profiles:${NC} gamedev, general${EL}"
             echo -e "  ${GREEN}vibe-translate <src> <tgt>${NC} Direct local file translation${EL}"
             echo -e "  ${GREEN}vibe-asset <prompt>${NC}     Generate ComfyUI assets${EL}"
             echo -e "    ${CYAN}--flux${NC}                Use premium Flux 2 GGUF${EL}"
@@ -48,7 +50,7 @@ draw_page() {
             echo -e "  ${GREEN}vibe-free${NC}               Free GPU VRAM (Ollama+ComfyUI)${EL}"
             ;;
         1)
-            echo -e "${YELLOW}═══ AIDER CO-PILOT COMMANDS [2/4] ═══${NC}${EL}"
+            echo -e "${YELLOW}═══ AIDER CO-PILOT COMMANDS [2/5] ═══${NC}${EL}"
             echo -e "  ${CYAN}/add <file>${NC}             Add file to LLM coding context${EL}"
             echo -e "  ${CYAN}/drop <file>${NC}            Drop file from LLM context${EL}"
             echo -e "  ${CYAN}/ask <query>${NC}            Ask codebase questions (no writes)${EL}"
@@ -60,7 +62,7 @@ draw_page() {
             echo -e "  ${CYAN}/exit${NC}                   Close Aider terminal pane${EL}"
             ;;
         2)
-            echo -e "${MAGENTA}═══ TMUX WORKSPACE HOTKEYS [3/4] ═══${NC}${EL}"
+            echo -e "${MAGENTA}═══ TMUX WORKSPACE HOTKEYS [3/5] ═══${NC}${EL}"
             echo -e "  ${CYAN}Ctrl+b [arrow]${NC}          Navigate between split panes${EL}"
             echo -e "  ${CYAN}Ctrl+b z${NC}                Toggle fullscreen active pane${EL}"
             echo -e "  ${CYAN}Ctrl+b [${NC}                Enable scroll mode (press 'q' to exit)${EL}"
@@ -70,7 +72,7 @@ draw_page() {
             echo -e "  ${CYAN}Ctrl+b x${NC}                Kill active split pane${EL}"
             ;;
         3)
-            echo -e "${GREEN}═══ MODEL HOT-SWAP COMMANDS [4/4] ═══${NC}${EL}"
+            echo -e "${GREEN}═══ MODEL HOT-SWAP COMMANDS [4/5] ═══${NC}${EL}"
             echo -e "  Copy & Paste into Aider to switch model instantly:${EL}"
             echo -e "  ${CYAN}/model ollama_chat/qwen3-coder:30b-tweaked${NC}${EL}"
             echo -e "  ${CYAN}/model ollama_chat/deepseek-coder-v2:16b-tweaked${NC}${EL}"
@@ -78,12 +80,25 @@ draw_page() {
             echo -e "  ${CYAN}/model ollama_chat/dolphin-llama3:8b-tweaked${NC}${EL}"
             echo -e "  ${CYAN}/model ollama_chat/qwen2.5-coder:7b-tweaked${NC}${EL}"
             ;;
+        4)
+            echo -e "${CYAN}═══ PROMPT & MODEL COMBOS [5/5] ═══${NC}${EL}"
+            echo -e "  Launch Aider with any model & system prompt combo:${EL}"
+            echo -e "  ${GREEN}vibe-start <dir> <mode> <profile>${NC}${EL}"
+            echo -e "  ${CYAN}Modes:${NC}    qwen | deepseek | translate | uncensored${EL}"
+            echo -e "  ${CYAN}Profiles:${NC} gamedev | general${EL}"
+            echo -e "  ${YELLOW}Examples:${NC}${EL}"
+            echo -e "  ${GREEN}vibe-start . gamedev${NC}         Qwen + Game Dev Prompt${EL}"
+            echo -e "  ${GREEN}vibe-start . deepseek general${NC}  DeepSeek + General Dev${EL}"
+            echo -e "  ${GREEN}vibe-start . translate gamedev${NC} Translator + Game Dev${EL}"
+            ;;
     esac
     
     # Track the height to clear remaining lines in smaller splits to prevent ghosting
-    lines_printed=9
+    lines_printed=12
+    [ $page -eq 1 ] && lines_printed=10
     [ $page -eq 2 ] && lines_printed=8
     [ $page -eq 3 ] && lines_printed=7
+    [ $page -eq 4 ] && lines_printed=8
     
     current_lines=$(tput lines)
     for ((i=lines_printed; i<current_lines; i++)); do
@@ -94,5 +109,5 @@ draw_page() {
 while true; do
     draw_page
     sleep 5
-    page=$(( (page + 1) % 4 ))
+    page=$(( (page + 1) % 5 ))
 done
