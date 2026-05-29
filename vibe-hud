@@ -26,6 +26,10 @@ prev_total=0
 prev_read_sectors=0
 prev_write_sectors=0
 
+# Variables for pure Bash Network I/O calculation
+prev_rx_bytes=0
+prev_tx_bytes=0
+
 # Restore cursor on exit
 trap 'tput cnorm; exit' INT TERM EXIT
 
@@ -209,12 +213,55 @@ while true; do
 
     disk_info="${read_mb} MB/s Read | ${write_mb} MB/s Write"
 
+    # E. Pure Bash Network I/O Speed Calculator (Single Awk parse for 0% CPU)
+    net_data=$(awk '/wlan|eno|enp|eth/ {rx+=$2; tx+=$10} END {print rx, tx}' /proc/net/dev 2>/dev/null)
+    current_rx_bytes=$(echo "$net_data" | awk '{print $1}')
+    current_tx_bytes=$(echo "$net_data" | awk '{print $2}')
+
+    if [ -z "$current_rx_bytes" ]; then current_rx_bytes=0; fi
+    if [ -z "$current_tx_bytes" ]; then current_tx_bytes=0; fi
+
+    diff_rx=$((current_rx_bytes - prev_rx_bytes))
+    diff_tx=$((current_tx_bytes - prev_tx_bytes))
+
+    if [ "$aider_running" -eq 1 ]; then
+        # 0.2s loop interval -> multiply difference by 5 to get per-second rate
+        rx_kb=$(( diff_rx * 5 / 1024 ))
+        tx_kb=$(( diff_tx * 5 / 1024 ))
+    else
+        # 1.0s loop interval
+        rx_kb=$(( diff_rx / 1024 ))
+        tx_kb=$(( diff_tx / 1024 ))
+    fi
+
+    # Handle negative differences on first iteration or wrap-arounds
+    if [ "$rx_kb" -lt 0 ]; then rx_kb=0; fi
+    if [ "$tx_kb" -lt 0 ]; then tx_kb=0; fi
+
+    prev_rx_bytes=$current_rx_bytes
+    prev_tx_bytes=$current_tx_bytes
+
+    if [ "$rx_kb" -gt 1024 ]; then
+        rx_str="$(( rx_kb / 1024 )) MB/s"
+    else
+        rx_str="${rx_kb} KB/s"
+    fi
+
+    if [ "$tx_kb" -gt 1024 ]; then
+        tx_str="$(( tx_kb / 1024 )) MB/s"
+    else
+        tx_str="${tx_kb} KB/s"
+    fi
+
+    net_info="${rx_str} Down | ${tx_str} Up"
+
     echo -e "  ${CYAN}[ HARDWARE STATUS ]${NC}${EL}"
     echo -e "  VRAM Usage:   [${GREEN}${bar_filled}${GRAY}${bar_empty}${NC}] ${gpu_used_gb} GB / ${gpu_total_gb} GB (${gpu_pct}%)${EL}"
     echo -e "  GPU Load/Temp: [${GREEN}${gpu_load_bar_filled}${GRAY}${gpu_load_bar_empty}${NC}] ${YELLOW}${gpu_load}% Load${NC} | ${YELLOW}${gpu_temp}C${NC}${EL}"
     echo -e "  CPU Usage:    [${GREEN}${cpu_bar_filled}${GRAY}${cpu_bar_empty}${NC}] ${cpu_usage}% Load | ${YELLOW}${cpu_temp_str}${NC}${EL}"
     echo -e "  System RAM:    $ram_info${EL}"
     echo -e "  Disk I/O:      $disk_info${EL}"
+    echo -e "  Network:       $net_info${EL}"
     echo -e "${GRAY}$divider${NC}${EL}"
     echo -e "${EL}"
 
