@@ -1,9 +1,5 @@
 #!/bin/bash
-# vibe-commands - Dynamic auto-cycling cheatsheet designed for compact terminal panes
-
-# CHANGELOG:
-# - Added vibe-free command to the custom commands cheat sheet list
-# - Fixed terminal height calculation to accommodate the new command
+# vibe-commands - High-density static cheatsheet designed for compact terminal panes
 
 # Colors for terminal output
 BLUE='\033[0;34m'
@@ -21,93 +17,43 @@ clear
 # Hide cursor
 tput civis
 
-page=0
-
 # Restore cursor on exit
 trap 'tput cnorm; exit' INT TERM EXIT
 
 # Trap window resize signals to force a redraw
-trap 'clear' WINCH
+trap 'clear; draw_cheatsheet' WINCH
 
-draw_page() {
-    cols=$(tput cols)
-    
+draw_cheatsheet() {
     tput cup 0 0
+    echo -e "${CYAN}═══ VIBE CUSTOM COMMANDS ═══════════════════════════${NC}${EL}"
+    echo -e "  ${GREEN}vibe-start [dir] [mode] [prof]${NC}   Start Tmux session${EL}"
+    echo -e "    ${GRAY}Modes:${NC} qwen, deepseek, translate, uncensored${EL}"
+    echo -e "    ${GRAY}Profiles:${NC} gamedev, general${EL}"
+    echo -e "  ${GREEN}vibe-translate <src> <tgt>${NC}       File translation${EL}"
+    echo -e "  ${GREEN}vibe-asset <prompt>${NC}               Generate sprites${EL}"
+    echo -e "  ${GREEN}vibe-free${NC}                         Free GPU VRAM${EL}"
     
-    case $page in
-        0)
-            echo -e "${CYAN}═══ VIBE CUSTOM COMMANDS [1/5] ═══${NC}${EL}"
-            echo -e "  ${GREEN}vibe-start [dir] [mode] [prof]${NC} Start Tmux coding session${EL}"
-            echo -e "    ${CYAN}Modes:${NC} qwen (default), deepseek, translate, uncensored${EL}"
-            echo -e "    ${CYAN}Profiles:${NC} gamedev, general${EL}"
-            echo -e "  ${GREEN}vibe-translate <src> <tgt>${NC} Direct local file translation${EL}"
-            echo -e "  ${GREEN}vibe-asset <prompt>${NC}     Generate ComfyUI assets${EL}"
-            echo -e "    ${CYAN}--flux${NC}                Use premium Flux 2 GGUF${EL}"
-            echo -e "    ${CYAN}--width / --height${NC}   Custom canvas dimension${EL}"
-            echo -e "  ${GREEN}vibe-check${NC}              Auto build/test project${EL}"
-            echo -e "  ${GREEN}vibe-hud${NC}                Live system telemetry monitor${EL}"
-            echo -e "  ${GREEN}vibe-asset-monitor${NC}      Workspace new asset tracker${EL}"
-            echo -e "  ${GREEN}vibe-free${NC}               Free GPU VRAM (Ollama+ComfyUI)${EL}"
-            ;;
-        1)
-            echo -e "${YELLOW}═══ AIDER CO-PILOT COMMANDS [2/5] ═══${NC}${EL}"
-            echo -e "  ${CYAN}/add <file>${NC}             Add file to LLM coding context${EL}"
-            echo -e "  ${CYAN}/drop <file>${NC}            Drop file from LLM context${EL}"
-            echo -e "  ${CYAN}/ask <query>${NC}            Ask codebase questions (no writes)${EL}"
-            echo -e "  ${CYAN}/undo${NC}                   Revert last commit made by Aider${EL}"
-            echo -e "  ${CYAN}/diff${NC}                   Show git diff of session changes${EL}"
-            echo -e "  ${CYAN}/commit${NC}                 Manually commit changes to git${EL}"
-            echo -e "  ${CYAN}/web <url>${NC}              Fetch and add web page to context${EL}"
-            echo -e "  ${CYAN}/tokens${NC}                 Show token count and cost usage${EL}"
-            echo -e "  ${CYAN}/exit${NC}                   Close Aider terminal pane${EL}"
-            ;;
-        2)
-            echo -e "${MAGENTA}═══ TMUX WORKSPACE HOTKEYS [3/5] ═══${NC}${EL}"
-            echo -e "  ${CYAN}Ctrl+b [arrow]${NC}          Navigate between split panes${EL}"
-            echo -e "  ${CYAN}Ctrl+b z${NC}                Toggle fullscreen active pane${EL}"
-            echo -e "  ${CYAN}Ctrl+b [${NC}                Enable scroll mode (press 'q' to exit)${EL}"
-            echo -e "  ${CYAN}Ctrl+b d${NC}                Detach from session cleanly${EL}"
-            echo -e "  ${CYAN}Ctrl+b \"${NC}                Split pane horizontally${EL}"
-            echo -e "  ${CYAN}Ctrl+b %${NC}                Split pane vertically${EL}"
-            echo -e "  ${CYAN}Ctrl+b x${NC}                Kill active split pane${EL}"
-            ;;
-        3)
-            echo -e "${GREEN}═══ MODEL HOT-SWAP COMMANDS [4/5] ═══${NC}${EL}"
-            echo -e "  Copy & Paste into Aider to switch model instantly:${EL}"
-            echo -e "  ${CYAN}/model ollama_chat/qwen3-coder:30b-tweaked${NC}${EL}"
-            echo -e "  ${CYAN}/model ollama_chat/deepseek-coder-v2:16b-tweaked${NC}${EL}"
-            echo -e "  ${CYAN}/model ollama_chat/deepseek-coder-v2:16b-translate${NC}${EL}"
-            echo -e "  ${CYAN}/model ollama_chat/dolphin-llama3:8b-tweaked${NC}${EL}"
-            echo -e "  ${CYAN}/model ollama_chat/qwen2.5-coder:7b-tweaked${NC}${EL}"
-            ;;
-        4)
-            echo -e "${CYAN}═══ PROMPT & MODEL COMBOS [5/5] ═══${NC}${EL}"
-            echo -e "  Launch Aider with any model & system prompt combo:${EL}"
-            echo -e "  ${GREEN}vibe-start <dir> <mode> <profile>${NC}${EL}"
-            echo -e "  ${CYAN}Modes:${NC}    qwen | deepseek | translate | uncensored${EL}"
-            echo -e "  ${CYAN}Profiles:${NC} gamedev | general${EL}"
-            echo -e "  ${YELLOW}Examples:${NC}${EL}"
-            echo -e "  ${GREEN}vibe-start . gamedev${NC}         Qwen + Game Dev Prompt${EL}"
-            echo -e "  ${GREEN}vibe-start . deepseek general${NC}  DeepSeek + General Dev${EL}"
-            echo -e "  ${GREEN}vibe-start . translate gamedev${NC} Translator + Game Dev${EL}"
-            ;;
-    esac
+    echo -e "${YELLOW}═══ AIDER CO-PILOT COMMANDS ════════════════════════${NC}${EL}"
+    echo -e "  ${CYAN}/add <file>${NC}   Add context        ${CYAN}/undo${NC}   Revert last${EL}"
+    echo -e "  ${CYAN}/drop <file>${NC}  Drop context       ${CYAN}/diff${NC}   Show changes${EL}"
+    echo -e "  ${CYAN}/ask <query>${NC}  Ask codebase       ${CYAN}/exit${NC}   Close Aider${EL}"
     
-    # Track the height to clear remaining lines in smaller splits to prevent ghosting
-    lines_printed=12
-    [ $page -eq 1 ] && lines_printed=10
-    [ $page -eq 2 ] && lines_printed=8
-    [ $page -eq 3 ] && lines_printed=7
-    [ $page -eq 4 ] && lines_printed=8
+    echo -e "${MAGENTA}═══ PROMPT & MODEL COMBINATIONS ════════════════════${NC}${EL}"
+    echo -e "  ${GREEN}vibe-start . gamedev${NC}         Qwen + Game Dev Prompt${EL}"
+    echo -e "  ${GREEN}vibe-start . deepseek general${NC}  DeepSeek + General Dev${EL}"
+    echo -e "  ${GREEN}vibe-start . translate gamedev${NC} Translator + Game Dev${EL}"
     
+    # Fill remaining space to prevent ghosting
     current_lines=$(tput lines)
-    for ((i=lines_printed; i<current_lines; i++)); do
+    for ((i=16; i<current_lines; i++)); do
         echo -e "${EL}"
     done
 }
 
+# Initial draw
+draw_cheatsheet
+
+# Keep script alive without consuming CPU
 while true; do
-    draw_page
-    sleep 5
-    page=$(( (page + 1) % 5 ))
+    sleep 60
 done
