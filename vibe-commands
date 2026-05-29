@@ -27,6 +27,7 @@ draw_cheatsheet() {
     tput cup 0 0
     echo -e "${CYAN}═══ VIBE CUSTOM COMMANDS ═══════════════════════════${NC}${EL}"
     echo -e "  ${GREEN}vibe-start [dir] [mode] [prof]${NC}   Start Tmux session${EL}"
+    echo -e "  ${GREEN}vibe-switch [mode] [prof]${NC}        Hot-swap active session${EL}"
     echo -e "    ${GRAY}Modes:${NC} qwen, deepseek, translate, uncensored${EL}"
     echo -e "    ${GRAY}Profiles:${NC} gamedev, general${EL}"
     echo -e "  ${GREEN}vibe-translate <src> <tgt>${NC}       File translation${EL}"
@@ -45,7 +46,7 @@ draw_cheatsheet() {
     
     # Fill remaining space to prevent ghosting
     current_lines=$(tput lines)
-    for ((i=16; i<current_lines; i++)); do
+    for ((i=17; i<current_lines; i++)); do
         echo -e "${EL}"
     done
 }
