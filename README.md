@@ -138,7 +138,9 @@ Here are the key configuration files and utilities provided in this repository:
 | [`vibe-hud`](vibe-hud) | Executable | The terminal-based telemetry and active Ollama triple-model cockpit dashboard. |
 | [`vibe-asset`](vibe-asset) | CLI Tool | Programmatic Stable Diffusion sprite generator connecting directly to local ComfyUI. |
 | [`vibe-free`](vibe-free) | Executable | Utility script to stop active Ollama instances and flush ComfyUI cache to free VRAM. |
-| [`vibe-start`](vibe-start) | Executable | Terminal workspace launcher managing Tmux panes and active profile spins. |
+| [`vibe-start`](vibe-start) | Executable | Terminal workspace launcher managing Tmux panes, model selections, and prompt profile loads. |
+| [`vibe-switch`](vibe-switch) | Executable | Active session switcher. Gracefully hot-swaps active workspaces to new model/prompt profiles in a single command. |
+| [`prompts/`](prompts/) | Prompt Library | Houses system instructions (`game-dev.instructions.md`, `general-dev.instructions.md`) and prompting guides (`pixel-art-guide.md`). |
 | [`aider.fish`](aider.fish) | Shell Integration | Fish Shell integration wrapper preventing startup timeouts by auto-archiving history. |
 | [`setup.sh`](setup.sh) | Shell Script | Automated setup installer managing downloads, paths, and local compilations. |
 | [`setup-voice.sh`](setup-voice.sh) | Shell Script | Configures local GPU dictation and hotkey bindings. |
@@ -173,23 +175,34 @@ chmod +x setup-all.sh
 You have two excellent choices to run this workspace:
 
 #### Option A: Side-by-Side Split Window Workspace (Recommended 🚀)
-If you have **`tmux`** installed, navigate to your active repository and run the launcher with your desired target path and model profile:
+If you have **`tmux`** installed, navigate to your active repository and run the launcher with your desired target path, model mode, and system instructions profile:
 ```bash
-vibe-start [project_directory] [profile]
+vibe-start [project_directory] [model_mode] [prompt_profile]
 ```
-* **Profiles available:**
+* **Model Modes available:**
   * `qwen` (Default dual-model Architect loop)
   * `deepseek` (Lightweight general 16B coding)
   * `translate` (DeepSeek specialized code translation)
   * `uncensored` (Dolphin unrestricted assistant)
-* *Example (Uncensored mode):*
+* **Prompt Instructions Profiles available:**
+  * `gamedev` (Professional Godot & GameMaker instructions)
+  * `general` (Standard clean, modular programming instructions)
+* *Example (Uncensored mode + Game Developer instructions):*
   ```bash
-  vibe-start ~/Documents/MyGame uncensored
+  vibe-start ~/Documents/MyGame uncensored gamedev
   ```
 This automatically launches a split-pane layout: **Aider** will open in the left pane (70% width) and your custom telemetry cockpit **vibe-hud** will open on the right in a single, gorgeous terminal frame!
+
+#### Option B: Dynamic Session Hot-Swapping (`vibe-switch`)
+If you are inside an active workspace session and want to instantly restart it with a different model mode or prompt instructions profile, run:
+```bash
+vibe-switch [model_mode] [prompt_profile]
+```
+This dynamically captures your current workspace path, kills the active Tmux layout, flushes the GPU VRAM (`vibe-free`), copies the new instructions to `.aider.instructions.md`, and completely restarts the split layout in the background! Run `tmux a` to re-attach immediately.
+
 * *To close the session*: Exit Aider (type `/exit` or `Ctrl+D`) and the Tmux panes will cleanly terminate.
 
-#### Option B: Manual Multi-Terminal Panes
+#### Option C: Manual Multi-Terminal Panes
 If you prefer standard windows or don't use tmux:
 1. **Open a split terminal pane** and start the triple-model cockpit monitor:
    ```bash
