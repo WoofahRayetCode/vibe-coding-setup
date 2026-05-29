@@ -3,11 +3,11 @@ FROM deepseek-coder-v2:16b
 # Sampling tweaks for deterministic, precise code output
 PARAMETER temperature 0.0
 PARAMETER top_p 0.9
-PARAMETER num_ctx 16384
-PARAMETER num_predict 8192
+PARAMETER num_ctx 8192
+PARAMETER num_predict 4096
 
-# CPU thread optimization matching AMD Ryzen 9 8940HX physical cores (avoids hyperthread bottlenecks)
-PARAMETER num_thread 16
+# CPU thread optimization matching AMD Ryzen 9 physical cores (prevents hyperthread contention)
+PARAMETER num_thread 8
 
 # System prompt optimized for high-speed, high-intelligence "vibe coding" using DeepSeek Coder V2
 SYSTEM """You are a highly efficient local Architect powered by DeepSeek Coder V2. You are optimized for fast, zero-fluff "vibe coding" workflows.
