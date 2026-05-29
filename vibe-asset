@@ -155,7 +155,7 @@ Examples:
             final_negative_prompt = "low quality, blurry, worst quality, 3d render, photorealistic, gradient background, depth of field, shadow cast"
 
     # Define workflow based on pipeline
-    if args.flux:
+    if use_flux:
         workflow = {
             "1": {
                 "inputs": {
@@ -334,7 +334,7 @@ Examples:
         sys.exit(1)
 
     # 2. Poll for completion
-    if args.flux:
+    if use_flux:
         print("⏳ Generating premium high-fidelity asset (Flux 2 takes longer, ~15-20 seconds on your RTX 5060)...")
     else:
         print("⏳ Generating pixel art sprite (takes ~3-5 seconds on your RTX 5060)...")
