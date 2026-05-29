@@ -42,12 +42,12 @@ idx_models=0
 
 # Frames for spinning 3D ASCII question mark animation (4 frames, 4 lines each)
 q_frame0_0="   .---. "
-q_frame0_1="  /  .  \\"
+q_frame0_1="  /  .  \\ "
 q_frame0_2="    /  / "
 q_frame0_3="    (o)  "
 
 q_frame1_0="    .-.  "
-q_frame1_1="   / . \ "
+q_frame1_1="   / . \\ "
 q_frame1_2="    / /  "
 q_frame1_3="    (o)  "
 
@@ -57,8 +57,8 @@ q_frame2_2="     |   "
 q_frame2_3="    (o)  "
 
 q_frame3_0="    .-.  "
-q_frame3_1="   / . \ "
-q_frame3_2="    \ \  "
+q_frame3_1="   / . \\ "
+q_frame3_2="    \\\\ \\  "
 q_frame3_3="    (o)  "
 
 # Restore cursor on exit
