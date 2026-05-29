@@ -30,6 +30,10 @@ prev_write_sectors=0
 prev_rx_bytes=0
 prev_tx_bytes=0
 
+# Variables for scrolling News Ticker (Godot & GameMaker Bleeding-Edge updates)
+ticker_text=" [GODOT MASTER] Typed Dictionaries are now natively compiled for 3x faster iterations.  |  [GAMEMAKER BETA] Dynamic Audio Effect bus routing and persistent GML structs optimized.  |  [GODOT MASTER] RenderingDevice GL Compatibility pipeline optimized for laptop GPUs.  |  [GAMEMAKER BETA] New vector particle shapes and physics bindings added. "
+ticker_idx=0
+
 # Restore cursor on exit
 trap 'tput cnorm; exit' INT TERM EXIT
 
@@ -448,6 +452,19 @@ while true; do
     echo -e "  Architect     $(printf '%-30s' "$arch_model")  $arch_status${EL}"
     echo -e "  Editor        $(printf '%-30s' "$edit_model")  $edit_status${EL}"
     echo -e "  $(printf '%-13s' "$trans_role")$(printf '%-30s' "$trans_model")  $trans_status${EL}"
+    echo -e "${EL}"
+
+    # Scrolling Ticker Logic
+    cols=$(tput cols)
+    ticker_w=$(( cols - 24 )) # 24 chars for "  « NEWS TICKER »  "
+    if [ "$ticker_w" -lt 10 ]; then ticker_w=10; fi
+
+    extended_text="${ticker_text}${ticker_text}"
+    text_len=${#ticker_text}
+    ticker_slice="${extended_text:$ticker_idx:$ticker_w}"
+    ticker_idx=$(( (ticker_idx + 1) % text_len ))
+
+    echo -e "  ${MAGENTA}« NEWS TICKER »${NC}  ${YELLOW}${ticker_slice}${NC}${EL}"
     echo -e "${EL}"
     echo -e "${CYAN}$border${NC}${EL}"
     echo -e "  Press [Ctrl+C] to exit HUD.                       ${EL}"
