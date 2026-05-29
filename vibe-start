@@ -39,6 +39,23 @@ if [ -n "$target_dir" ]; then
     cd "$target_dir" || exit 1
 fi
 
+# Auto-detect and purge accidental zero-byte untracked files created by Aider
+if git rev-parse --is-inside-work-tree &>/dev/null; then
+    untracked_files=$(git status --porcelain | grep "^??" | cut -c4-)
+    if [ -n "$untracked_files" ]; then
+        echo "$untracked_files" | while read -r file; do
+            file_clean=$(echo "$file" | sed -e 's/^"//' -e 's/"$//')
+            if [ -f "$file_clean" ] && [ ! -s "$file_clean" ]; then
+                filename=$(basename "$file_clean")
+                if [[ "$filename" != ".gitignore" && "$filename" != ".gitattributes" && "$filename" != ".editorconfig" ]]; then
+                    echo -e "\e[0;33m[VIBE] Auto-purged accidental zero-byte file: '$file_clean'\e[0m"
+                    rm -f "$file_clean"
+                fi
+            fi
+        done
+    fi
+fi
+
 # Check if session already exists, and kill it to ensure a fresh start
 if tmux has-session -t vibe-coding 2>/dev/null; then
     echo -e "\e[0;33mClosing existing 'vibe-coding' session...\e[0m"
