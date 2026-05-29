@@ -14,6 +14,9 @@ verbose: false
 # Allow a richer repository map (higher token budget) for Qwen3's huge context
 map-tokens: 2048
 
+# Enable system prompt caching to dramatically speed up subsequent request processing
+cache-prompts: true
+
 # Turn off auto-suggested shell commands to keep terminal outputs clean
 suggest-shell-commands: false
 
